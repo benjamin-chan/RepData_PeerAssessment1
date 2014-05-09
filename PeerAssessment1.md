@@ -82,13 +82,13 @@ Load packages.
 
 
 ```r
-packages <- c("data.table", "ggplot2")
+packages <- c("data.table", "ggplot2", "xtable")
 sapply(packages, require, character.only = TRUE, quietly = TRUE)
 ```
 
 ```
-## data.table    ggplot2 
-##       TRUE       TRUE
+## data.table    ggplot2     xtable 
+##       TRUE       TRUE       TRUE
 ```
 
 
@@ -223,4 +223,35 @@ ggplot(dtIntervals, aes(x = interval, y = meanSteps)) + geom_line()
 ```
 
 ![plot of chunk timeseriesStepsTakenEachInterval](figure/timeseriesStepsTakenEachInterval.png) 
+
+
+
+> ### Imputing missing values
+> 
+> Note that there are a number of days/intervals where there are missing
+> values (coded as `NA`). The presence of missing days may introduce
+> bias into some calculations or summaries of the data.
+> 
+> 1. Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with `NA`s)
+> 
+> 2. Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5-> minute interval, etc.> 
+> 
+> 3. Create a new dataset that is equal to the original dataset but with the missing data filled in.
+> 
+> 4. Make a histogram of the total number of steps taken each day and Calculate and report the **mean** and **median** total number of steps taken per day. Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?
+
+Calculate the total number of missing values.
+
+
+```r
+print(xtable(dt[, .N, list(isMissing = is.na(steps))]), type = "html")
+```
+
+<!-- html table generated in R 3.0.2 by xtable 1.7-1 package -->
+<!-- Fri May 09 15:19:37 2014 -->
+<TABLE border=1>
+<TR> <TH>  </TH> <TH> isMissing </TH> <TH> N </TH>  </TR>
+  <TR> <TD align="right"> 1 </TD> <TD> TRUE </TD> <TD align="right"> 2304 </TD> </TR>
+  <TR> <TD align="right"> 2 </TD> <TD> FALSE </TD> <TD align="right"> 15264 </TD> </TR>
+   </TABLE>
 
