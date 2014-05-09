@@ -199,3 +199,28 @@ dtDaily[, list(mean = mean(sumSteps), median = median(sumSteps))]
 ## 1: 9354  10395
 ```
 
+
+
+> ### What is the average daily activity pattern?
+> 
+> 1. Make a time series plot (i.e. `type = "l"`) of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
+> 
+> 2. Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
+
+Aggregate the average number of steps taken by 5-minute interval.
+
+
+```r
+dtIntervals <- dt[, list(meanSteps = mean(steps, na.rm = TRUE)), interval]
+```
+
+
+Plot a time series of the 5-minute interval and the average number of steps taken across all days.
+
+
+```r
+ggplot(dtIntervals, aes(x = interval, y = meanSteps)) + geom_line()
+```
+
+![plot of chunk timeseriesStepsTakenEachInterval](figure/timeseriesStepsTakenEachInterval.png) 
+
