@@ -82,13 +82,13 @@ Load packages.
 
 
 ```r
-packages <- c("data.table")
+packages <- c("data.table", "ggplot2")
 sapply(packages, require, character.only = TRUE, quietly = TRUE)
 ```
 
 ```
-## data.table 
-##       TRUE
+## data.table    ggplot2 
+##       TRUE       TRUE
 ```
 
 
@@ -123,9 +123,23 @@ Convert the data frame to a data table using the [`data.table`](http://cran.r-pr
 ```r
 dt <- read.csv(file.path(getwd(), "activity.csv"))
 dt <- data.table(dt)
+setkey(dt, date, interval)
 ```
 
  
+Verify that the number of rows in the dataset is the expected value of 17,568.
+
+
+```r
+message(sprintf("Is the number of rows in the dataset 17,568? %s", nrow(dt) == 
+    17568))
+```
+
+```
+## Is the number of rows in the dataset 17,568? TRUE
+```
+
+
 Convert the `date` variable to a date class.
 And look at the structure of the dataset.
 
@@ -154,4 +168,34 @@ str(dt)
 > 
 > 2. Calculate and report the **mean** and **median** total number of steps taken per day
 
+Aggregate the number of steps taken each day.
+Ignore the missing values.
+
+
+```r
+dtDaily <- dt[, list(sumSteps = sum(steps, na.rm = TRUE)), date]
+```
+
+
+Plot a histogram of the total number of steps taken each day.
+
+
+```r
+ggplot(dtDaily, aes(x = date, y = sumSteps)) + geom_histogram(stat = "identity")
+```
+
+![plot of chunk histogramStepsTakenEachDay](figure/histogramStepsTakenEachDay.png) 
+
+
+Calculate the mean and median total number of steps taken per day.
+
+
+```r
+dtDaily[, list(mean = mean(sumSteps), median = median(sumSteps))]
+```
+
+```
+##    mean median
+## 1: 9354  10395
+```
 
