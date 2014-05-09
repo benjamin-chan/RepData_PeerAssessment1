@@ -298,24 +298,8 @@ dt &lt;- data.table(dt)
 <p>Convert the <code>date</code> variable to a date class.
 And look at the structure of the dataset.</p>
 
-<pre><code class="r">dt[, `:=`(date, as.Date(date))]
-</code></pre>
-
-<pre><code>##        steps       date interval
-##     1:    NA 2012-10-01        0
-##     2:    NA 2012-10-01        5
-##     3:    NA 2012-10-01       10
-##     4:    NA 2012-10-01       15
-##     5:    NA 2012-10-01       20
-##    ---                          
-## 17564:    NA 2012-11-30     2335
-## 17565:    NA 2012-11-30     2340
-## 17566:    NA 2012-11-30     2345
-## 17567:    NA 2012-11-30     2350
-## 17568:    NA 2012-11-30     2355
-</code></pre>
-
-<pre><code class="r">str(dt)
+<pre><code class="r">dt &lt;- dt[, `:=`(date, as.Date(date))]
+str(dt)
 </code></pre>
 
 <pre><code>## Classes &#39;data.table&#39; and &#39;data.frame&#39;:   17568 obs. of  3 variables:

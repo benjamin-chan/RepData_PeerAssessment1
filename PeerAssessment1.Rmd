@@ -118,7 +118,7 @@ Convert the `date` variable to a date class.
 And look at the structure of the dataset.
 
 ```{r}
-dt[, date := as.Date(date)]
+dt <- dt[, date := as.Date(date)]
 str(dt)
 ```
 
