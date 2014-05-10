@@ -1,6 +1,8 @@
 Peer Assessment 1
 =================
 
+Peer assessment 1 assignment for Coursera course [Reproducible Research](Reproducible Research).
+
 > ## Introduction
 > 
 > It is now possible to collect a large amount of data about personal
@@ -191,13 +193,16 @@ Calculate the mean and median total number of steps taken per day.
 
 
 ```r
-dtDaily[, list(mean = mean(sumSteps), median = median(sumSteps))]
+print(xtable(dtDaily[, list(mean = mean(sumSteps), median = median(sumSteps))]), 
+    type = "html", include.rownames = FALSE)
 ```
 
-```
-##    mean median
-## 1: 9354  10395
-```
+<!-- html table generated in R 3.0.2 by xtable 1.7-1 package -->
+<!-- Fri May 09 20:38:09 2014 -->
+<TABLE border=1>
+<TR> <TH> mean </TH> <TH> median </TH>  </TR>
+  <TR> <TD align="right"> 9354.23 </TD> <TD align="right"> 10395 </TD> </TR>
+   </TABLE>
 
 
 
@@ -234,7 +239,7 @@ ggplot(dtIntervals, aes(x = interval, y = meanSteps)) + geom_line()
 > 
 > 1. Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with `NA`s)
 > 
-> 2. Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5-> minute interval, etc.> 
+> 2. Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5-minute interval, etc.
 > 
 > 3. Create a new dataset that is equal to the original dataset but with the missing data filled in.
 > 
@@ -244,14 +249,150 @@ Calculate the total number of missing values.
 
 
 ```r
-print(xtable(dt[, .N, list(isMissing = is.na(steps))]), type = "html")
+dt <- dt[, `:=`(isStepsMissing, is.na(steps))]
+print(xtable(dt[, .N, isStepsMissing]), type = "html", include.rownames = FALSE)
 ```
 
 <!-- html table generated in R 3.0.2 by xtable 1.7-1 package -->
-<!-- Fri May 09 15:19:37 2014 -->
+<!-- Fri May 09 20:38:09 2014 -->
 <TABLE border=1>
-<TR> <TH>  </TH> <TH> isMissing </TH> <TH> N </TH>  </TR>
-  <TR> <TD align="right"> 1 </TD> <TD> TRUE </TD> <TD align="right"> 2304 </TD> </TR>
-  <TR> <TD align="right"> 2 </TD> <TD> FALSE </TD> <TD align="right"> 15264 </TD> </TR>
+<TR> <TH> isStepsMissing </TH> <TH> N </TH>  </TR>
+  <TR> <TD> TRUE </TD> <TD align="right"> 2304 </TD> </TR>
+  <TR> <TD> FALSE </TD> <TD align="right"> 15264 </TD> </TR>
    </TABLE>
 
+
+Fit a model for the number of steps taken using the 5-minute interval as the predictor.
+Use the predicted values from this model to impute missing values; call this variable `stepsImputed`.
+
+
+```r
+M <- lm(steps ~ factor(interval), data = dt, na.action = "na.exclude")
+dt <- dt[, `:=`(stepsImputed, steps)]
+dt$stepsImputed[dt$isStepsMissing] <- predict(M, newdata = dt)[dt$isStepsMissing]
+```
+
+
+Verify that there are no missing values for `stepsImputed`.
+
+
+```r
+print(xtable(dt[, .N, list(isMissing = is.na(stepsImputed))]), type = "html", 
+    include.rownames = FALSE)
+```
+
+<!-- html table generated in R 3.0.2 by xtable 1.7-1 package -->
+<!-- Fri May 09 20:38:12 2014 -->
+<TABLE border=1>
+<TR> <TH> isMissing </TH> <TH> N </TH>  </TR>
+  <TR> <TD> FALSE </TD> <TD align="right"> 17568 </TD> </TR>
+   </TABLE>
+
+
+#### After imputation of missing values
+
+Aggregate the number of steps taken each day.
+
+
+```r
+dtDaily <- dt[, list(sumSteps = sum(steps, na.rm = TRUE), sumStepsImputed = sum(stepsImputed)), 
+    date]
+dtDaily
+```
+
+```
+##           date sumSteps sumStepsImputed
+##  1: 2012-10-01        0           10766
+##  2: 2012-10-02      126             126
+##  3: 2012-10-03    11352           11352
+##  4: 2012-10-04    12116           12116
+##  5: 2012-10-05    13294           13294
+##  6: 2012-10-06    15420           15420
+##  7: 2012-10-07    11015           11015
+##  8: 2012-10-08        0           10766
+##  9: 2012-10-09    12811           12811
+## 10: 2012-10-10     9900            9900
+## 11: 2012-10-11    10304           10304
+## 12: 2012-10-12    17382           17382
+## 13: 2012-10-13    12426           12426
+## 14: 2012-10-14    15098           15098
+## 15: 2012-10-15    10139           10139
+## 16: 2012-10-16    15084           15084
+## 17: 2012-10-17    13452           13452
+## 18: 2012-10-18    10056           10056
+## 19: 2012-10-19    11829           11829
+## 20: 2012-10-20    10395           10395
+## 21: 2012-10-21     8821            8821
+## 22: 2012-10-22    13460           13460
+## 23: 2012-10-23     8918            8918
+## 24: 2012-10-24     8355            8355
+## 25: 2012-10-25     2492            2492
+## 26: 2012-10-26     6778            6778
+## 27: 2012-10-27    10119           10119
+## 28: 2012-10-28    11458           11458
+## 29: 2012-10-29     5018            5018
+## 30: 2012-10-30     9819            9819
+## 31: 2012-10-31    15414           15414
+## 32: 2012-11-01        0           10766
+## 33: 2012-11-02    10600           10600
+## 34: 2012-11-03    10571           10571
+## 35: 2012-11-04        0           10766
+## 36: 2012-11-05    10439           10439
+## 37: 2012-11-06     8334            8334
+## 38: 2012-11-07    12883           12883
+## 39: 2012-11-08     3219            3219
+## 40: 2012-11-09        0           10766
+## 41: 2012-11-10        0           10766
+## 42: 2012-11-11    12608           12608
+## 43: 2012-11-12    10765           10765
+## 44: 2012-11-13     7336            7336
+## 45: 2012-11-14        0           10766
+## 46: 2012-11-15       41              41
+## 47: 2012-11-16     5441            5441
+## 48: 2012-11-17    14339           14339
+## 49: 2012-11-18    15110           15110
+## 50: 2012-11-19     8841            8841
+## 51: 2012-11-20     4472            4472
+## 52: 2012-11-21    12787           12787
+## 53: 2012-11-22    20427           20427
+## 54: 2012-11-23    21194           21194
+## 55: 2012-11-24    14478           14478
+## 56: 2012-11-25    11834           11834
+## 57: 2012-11-26    11162           11162
+## 58: 2012-11-27    13646           13646
+## 59: 2012-11-28    10183           10183
+## 60: 2012-11-29     7047            7047
+## 61: 2012-11-30        0           10766
+##           date sumSteps sumStepsImputed
+```
+
+
+Plot a histogram of the total number of steps taken each day.
+
+
+```r
+ggplot(dtDaily, aes(x = date, y = sumStepsImputed)) + geom_histogram(stat = "identity")
+```
+
+![plot of chunk histogramStepsTakenEachDayAfterImputation](figure/histogramStepsTakenEachDayAfterImputation.png) 
+
+
+Calculate the mean and median total number of steps taken per day.
+
+
+```r
+print(xtable(dtDaily[, list(mean = mean(sumStepsImputed), median = median(sumStepsImputed))]), 
+    type = "html", include.rownames = FALSE)
+```
+
+<!-- html table generated in R 3.0.2 by xtable 1.7-1 package -->
+<!-- Fri May 09 20:38:12 2014 -->
+<TABLE border=1>
+<TR> <TH> mean </TH> <TH> median </TH>  </TR>
+  <TR> <TD align="right"> 10766.19 </TD> <TD align="right"> 10766.19 </TD> </TR>
+   </TABLE>
+
+
+The median of the imputed values isn't so different from the original values where missing values were not imputed.
+However, the mean of the imputed values is a bit higher from the original values.
+Strangely, the mean and median of the imputed values is the same.

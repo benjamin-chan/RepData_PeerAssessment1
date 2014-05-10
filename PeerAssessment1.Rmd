@@ -1,6 +1,8 @@
 Peer Assessment 1
 =================
 
+Peer assessment 1 assignment for Coursera course [Reproducible Research](Reproducible Research).
+
 > ## Introduction
 > 
 > It is now possible to collect a large amount of data about personal
@@ -148,15 +150,15 @@ dtDaily <- dt[, list(sumSteps = sum(steps, na.rm=TRUE)), date]
 
 Plot a histogram of the total number of steps taken each day.
 
-```{r histogramStepsTakenEachDay, fig.width=10}
+```{r histogramStepsTakenEachDay, fig.width=12}
 ggplot(dtDaily, aes(x=date, y=sumSteps)) +
-  geom_histogram(stat="identity")
+	geom_histogram(stat="identity")
 ```
 
 Calculate the mean and median total number of steps taken per day.
 
-```{r}
-dtDaily[, list(mean = mean(sumSteps), median = median(sumSteps))]
+```{r, results='asis'}
+print(xtable(dtDaily[, list(mean = mean(sumSteps), median = median(sumSteps))]), type="html", include.rownames=FALSE)
 ```
 
 
@@ -174,7 +176,7 @@ dtIntervals <- dt[, list(meanSteps = mean(steps, na.rm=TRUE)), interval]
 
 Plot a time series of the 5-minute interval and the average number of steps taken across all days.
 
-```{r timeseriesStepsTakenEachInterval, fig.width=10}
+```{r timeseriesStepsTakenEachInterval, fig.width=12}
 ggplot(dtIntervals, aes(x=interval, y=meanSteps)) +
 	geom_line()
 ```
@@ -188,7 +190,7 @@ ggplot(dtIntervals, aes(x=interval, y=meanSteps)) +
 > 
 > 1. Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with `NA`s)
 > 
-> 2. Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5-> minute interval, etc.> 
+> 2. Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5-minute interval, etc.
 > 
 > 3. Create a new dataset that is equal to the original dataset but with the missing data filled in.
 > 
@@ -197,5 +199,47 @@ ggplot(dtIntervals, aes(x=interval, y=meanSteps)) +
 Calculate the total number of missing values.
 
 ```{r, results='asis'}
-print(xtable(dt[, .N, list(isMissing = is.na(steps))]), type="html")
+dt <- dt[, isStepsMissing := is.na(steps)]
+print(xtable(dt[, .N, isStepsMissing]), type="html", include.rownames=FALSE)
 ```
+
+Fit a model for the number of steps taken using the 5-minute interval as the predictor.
+Use the predicted values from this model to impute missing values; call this variable `stepsImputed`.
+
+```{r}
+M <- lm(steps ~ factor(interval), data=dt, na.action="na.exclude")
+dt <- dt[, stepsImputed := steps]
+dt$stepsImputed[dt$isStepsMissing] <- predict(M, newdata=dt)[dt$isStepsMissing]
+```
+
+Verify that there are no missing values for `stepsImputed`.
+
+```{r, results='asis'}
+print(xtable(dt[, .N, list(isMissing = is.na(stepsImputed))]), type="html", include.rownames=FALSE)
+```
+
+#### After imputation of missing values
+
+Aggregate the number of steps taken each day.
+
+```{r}
+dtDaily <- dt[, list(sumSteps = sum(steps, na.rm=TRUE), sumStepsImputed = sum(stepsImputed)), date]
+dtDaily
+```
+
+Plot a histogram of the total number of steps taken each day.
+
+```{r histogramStepsTakenEachDayAfterImputation, fig.width=12}
+ggplot(dtDaily, aes(x=date, y=sumStepsImputed)) +
+	geom_histogram(stat="identity")
+```
+
+Calculate the mean and median total number of steps taken per day.
+
+```{r, results='asis'}
+print(xtable(dtDaily[, list(mean = mean(sumStepsImputed), median = median(sumStepsImputed))]), type="html", include.rownames=FALSE)
+```
+
+The median of the imputed values isn't so different from the original values where missing values were not imputed.
+However, the mean of the imputed values is a bit higher from the original values.
+Strangely, the mean and median of the imputed values is the same.
