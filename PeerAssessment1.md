@@ -198,7 +198,7 @@ print(xtable(dtDaily[, list(mean = mean(sumSteps), median = median(sumSteps))]),
 ```
 
 <!-- html table generated in R 3.0.2 by xtable 1.7-1 package -->
-<!-- Sun May 11 05:07:33 2014 -->
+<!-- Sun May 11 06:32:33 2014 -->
 <TABLE border=1>
 <TR> <TH> mean </TH> <TH> median </TH>  </TR>
   <TR> <TD align="right"> 9354.23 </TD> <TD align="right"> 10395 </TD> </TR>
@@ -254,7 +254,7 @@ print(xtable(dt[, .N, isStepsMissing]), type = "html", include.rownames = FALSE)
 ```
 
 <!-- html table generated in R 3.0.2 by xtable 1.7-1 package -->
-<!-- Sun May 11 05:07:33 2014 -->
+<!-- Sun May 11 06:32:33 2014 -->
 <TABLE border=1>
 <TR> <TH> isStepsMissing </TH> <TH> N </TH>  </TR>
   <TR> <TD> TRUE </TD> <TD align="right"> 2304 </TD> </TR>
@@ -284,7 +284,7 @@ print(xtable(dt[, .N, list(isMissing = is.na(stepsImputed))]), type = "html",
 ```
 
 <!-- html table generated in R 3.0.2 by xtable 1.7-1 package -->
-<!-- Sun May 11 05:07:36 2014 -->
+<!-- Sun May 11 06:32:36 2014 -->
 <TABLE border=1>
 <TR> <TH> isMissing </TH> <TH> N </TH>  </TR>
   <TR> <TD> FALSE </TD> <TD align="right"> 17568 </TD> </TR>
@@ -412,7 +412,7 @@ print(xtable(dtDaily[, list(meanBefore = mean(sumSteps), meanImputed = mean(sumS
 ```
 
 <!-- html table generated in R 3.0.2 by xtable 1.7-1 package -->
-<!-- Sun May 11 05:07:36 2014 -->
+<!-- Sun May 11 06:32:37 2014 -->
 <TABLE border=1>
 <TR> <TH> meanBefore </TH> <TH> meanImputed </TH> <TH> medianBefore </TH> <TH> medianImputed </TH>  </TR>
   <TR> <TD align="right"> 9354.23 </TD> <TD align="right"> 10766.19 </TD> <TD align="right"> 10395 </TD> <TD align="right"> 10766.19 </TD> </TR>
@@ -423,3 +423,88 @@ The median of the imputed values isn't so different from the original values whe
 However, the mean of the imputed values is a bit higher from the original values.
 The overall impact of the imputed values is to raise the estimates of the number of steps taken each day.
 Before imputation, the number of steps taken was essentially zero.
+
+
+> ### Are there differences in activity patterns between weekdays and weekends?
+> 
+> For this part the `weekdays()` function may be of some help here. Use
+> the dataset with the filled-in missing values for this part.
+> 
+> 1. Create a new factor variable in the dataset with two levels -- "weekday" and "weekend" indicating whether a given date is a weekday or weekend day.
+> 
+> 1. Make a panel plot containing a time series plot (i.e. `type = "l"`) of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). The plot should look something like the following, which was creating using **simulated data**:
+> 
+> ![Sample panel plot](instructions_fig/sample_panelplot.png) 
+> 
+> **Your plot will look different from the one above** because you will
+> be using the activity monitor data. Note that the above plot was made
+> using the lattice system but you can make the same version of the plot
+> using any plotting system you choose.
+
+Create a new factor variable in the dataset with two levels -- "weekday" and "weekend" indicating whether a given date is a weekday or weekend day.
+Use this solution to [collapse the factor values](http://stackoverflow.com/a/9053619) for day of week.
+Verify that `dayOfWeek` and `dayType` are factor class variables.
+
+
+```r
+levels <- c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", 
+    "Saturday")
+newLevels <- c("Weekend", rep("Weekday", 5), "Weekend")
+dt <- dt[, `:=`(dayOfWeek, factor(weekdays(date), levels = levels))]
+dt <- dt[, `:=`(dayType, factor(newLevels[dayOfWeek]))]
+dt[, .N, list(dayType, dayOfWeek)]
+```
+
+```
+##    dayType dayOfWeek    N
+## 1: Weekday    Monday 2592
+## 2: Weekday   Tuesday 2592
+## 3: Weekday Wednesday 2592
+## 4: Weekday  Thursday 2592
+## 5: Weekday    Friday 2592
+## 6: Weekend  Saturday 2304
+## 7: Weekend    Sunday 2304
+```
+
+```r
+message(sprintf("Is dayOfWeek a factor? %s. Is dayType a factor? %s", is.factor(dt$dayOfWeek), 
+    is.factor(dt$dayType)))
+```
+
+```
+## Is dayOfWeek a factor? TRUE. Is dayType a factor? TRUE
+```
+
+
+Aggregate the average number of steps taken by 5-minute interval.
+Use the imputed values in the `stepsImputed` variable.
+
+
+```r
+dtIntervals <- dt[, list(meanSteps = mean(stepsImputed, na.rm = TRUE)), list(dayType, 
+    interval)]
+```
+
+
+Plot two time series (one for weekdays and the other for weekends) of the 5-minute intervals and average number of steps taken (imputed values).
+
+
+```r
+ggplot(dtIntervals, aes(x = interval, y = meanSteps, color = dayType)) + geom_line() + 
+    facet_wrap(~dayType, nrow = 2) + theme(legend.position = "none")
+```
+
+![plot of chunk timeseriesStepsTakenEachIntervalByDayTypePanel](figure/timeseriesStepsTakenEachIntervalByDayTypePanel.png) 
+
+
+It's a bit hard to discern any differences.
+So overlay the time series on a single plot instead of using a panel plot.
+
+
+```r
+ggplot(dtIntervals, aes(x = interval, y = meanSteps, color = dayType)) + geom_line() + 
+    theme(legend.position = "bottom")
+```
+
+![plot of chunk timeseriesStepsTakenEachIntervalByDayType](figure/timeseriesStepsTakenEachIntervalByDayType.png) 
+
