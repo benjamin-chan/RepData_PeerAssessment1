@@ -83,7 +83,7 @@ Peer assessment 1 assignment for Coursera course [Reproducible Research](Reprodu
 Load packages.
 
 ```{r}
-packages <- c("data.table", "ggplot2", "xtable", "mice")
+packages <- c("data.table", "ggplot2", "xtable", "mice", "mi")
 sapply(packages, require, character.only=TRUE, quietly=TRUE)
 ```
 
@@ -209,6 +209,14 @@ Use the predicted values from this model to impute missing values; call this var
 
 ```{r}
 imputed <- mice(dt[, list(steps, dateNumeric = as.numeric(date), interval)])
+```
+
+Use the [mi](http://cran.r-project.org/web/packages/mi/index.html) package to impute missing values of the `steps` variable.
+Use simple random imputation.
+
+```{r}
+dt <- dt[, stepsImputed := steps]
+dt <- dt[, stepsImputed := random.imp(dt[, list(steps)])]
 ```
 
 ```{r, eval=FALSE}
