@@ -198,7 +198,7 @@ print(xtable(dtDaily[, list(mean = mean(sumSteps), median = median(sumSteps))]),
 ```
 
 <!-- html table generated in R 3.0.2 by xtable 1.7-1 package -->
-<!-- Fri May 09 20:38:09 2014 -->
+<!-- Sun May 11 05:07:33 2014 -->
 <TABLE border=1>
 <TR> <TH> mean </TH> <TH> median </TH>  </TR>
   <TR> <TD align="right"> 9354.23 </TD> <TD align="right"> 10395 </TD> </TR>
@@ -254,7 +254,7 @@ print(xtable(dt[, .N, isStepsMissing]), type = "html", include.rownames = FALSE)
 ```
 
 <!-- html table generated in R 3.0.2 by xtable 1.7-1 package -->
-<!-- Fri May 09 20:38:09 2014 -->
+<!-- Sun May 11 05:07:33 2014 -->
 <TABLE border=1>
 <TR> <TH> isStepsMissing </TH> <TH> N </TH>  </TR>
   <TR> <TD> TRUE </TD> <TD align="right"> 2304 </TD> </TR>
@@ -262,7 +262,9 @@ print(xtable(dt[, .N, isStepsMissing]), type = "html", include.rownames = FALSE)
    </TABLE>
 
 
-Fit a model for the number of steps taken using the 5-minute interval as the predictor.
+Fit a linear model for the number of steps taken using the 5-minute interval as the predictor.
+Specify the 5-minute interval predictor as a factor class variable.
+This model estimates the mean number of steps taken for each 5-minute interval.
 Use the predicted values from this model to impute missing values; call this variable `stepsImputed`.
 
 
@@ -282,11 +284,33 @@ print(xtable(dt[, .N, list(isMissing = is.na(stepsImputed))]), type = "html",
 ```
 
 <!-- html table generated in R 3.0.2 by xtable 1.7-1 package -->
-<!-- Fri May 09 20:38:12 2014 -->
+<!-- Sun May 11 05:07:36 2014 -->
 <TABLE border=1>
 <TR> <TH> isMissing </TH> <TH> N </TH>  </TR>
   <TR> <TD> FALSE </TD> <TD align="right"> 17568 </TD> </TR>
    </TABLE>
+
+
+Verify that missingness is complete for an entire day.
+
+
+```r
+dtMissingness <- dt[, list(countMissing = sum(isStepsMissing), countRecords = .N, 
+    propMissing = sum(isStepsMissing/.N)), date]
+dtMissingness[countMissing > 0]
+```
+
+```
+##          date countMissing countRecords propMissing
+## 1: 2012-10-01          288          288           1
+## 2: 2012-10-08          288          288           1
+## 3: 2012-11-01          288          288           1
+## 4: 2012-11-04          288          288           1
+## 5: 2012-11-09          288          288           1
+## 6: 2012-11-10          288          288           1
+## 7: 2012-11-14          288          288           1
+## 8: 2012-11-30          288          288           1
+```
 
 
 #### After imputation of missing values
@@ -295,83 +319,84 @@ Aggregate the number of steps taken each day.
 
 
 ```r
-dtDaily <- dt[, list(sumSteps = sum(steps, na.rm = TRUE), sumStepsImputed = sum(stepsImputed)), 
-    date]
+dtDaily <- dt[, list(sumSteps = sum(steps, na.rm = TRUE), sumStepsImputed = sum(stepsImputed), 
+    isImputed = sum(isStepsMissing) > 0), date]
 dtDaily
 ```
 
 ```
-##           date sumSteps sumStepsImputed
-##  1: 2012-10-01        0           10766
-##  2: 2012-10-02      126             126
-##  3: 2012-10-03    11352           11352
-##  4: 2012-10-04    12116           12116
-##  5: 2012-10-05    13294           13294
-##  6: 2012-10-06    15420           15420
-##  7: 2012-10-07    11015           11015
-##  8: 2012-10-08        0           10766
-##  9: 2012-10-09    12811           12811
-## 10: 2012-10-10     9900            9900
-## 11: 2012-10-11    10304           10304
-## 12: 2012-10-12    17382           17382
-## 13: 2012-10-13    12426           12426
-## 14: 2012-10-14    15098           15098
-## 15: 2012-10-15    10139           10139
-## 16: 2012-10-16    15084           15084
-## 17: 2012-10-17    13452           13452
-## 18: 2012-10-18    10056           10056
-## 19: 2012-10-19    11829           11829
-## 20: 2012-10-20    10395           10395
-## 21: 2012-10-21     8821            8821
-## 22: 2012-10-22    13460           13460
-## 23: 2012-10-23     8918            8918
-## 24: 2012-10-24     8355            8355
-## 25: 2012-10-25     2492            2492
-## 26: 2012-10-26     6778            6778
-## 27: 2012-10-27    10119           10119
-## 28: 2012-10-28    11458           11458
-## 29: 2012-10-29     5018            5018
-## 30: 2012-10-30     9819            9819
-## 31: 2012-10-31    15414           15414
-## 32: 2012-11-01        0           10766
-## 33: 2012-11-02    10600           10600
-## 34: 2012-11-03    10571           10571
-## 35: 2012-11-04        0           10766
-## 36: 2012-11-05    10439           10439
-## 37: 2012-11-06     8334            8334
-## 38: 2012-11-07    12883           12883
-## 39: 2012-11-08     3219            3219
-## 40: 2012-11-09        0           10766
-## 41: 2012-11-10        0           10766
-## 42: 2012-11-11    12608           12608
-## 43: 2012-11-12    10765           10765
-## 44: 2012-11-13     7336            7336
-## 45: 2012-11-14        0           10766
-## 46: 2012-11-15       41              41
-## 47: 2012-11-16     5441            5441
-## 48: 2012-11-17    14339           14339
-## 49: 2012-11-18    15110           15110
-## 50: 2012-11-19     8841            8841
-## 51: 2012-11-20     4472            4472
-## 52: 2012-11-21    12787           12787
-## 53: 2012-11-22    20427           20427
-## 54: 2012-11-23    21194           21194
-## 55: 2012-11-24    14478           14478
-## 56: 2012-11-25    11834           11834
-## 57: 2012-11-26    11162           11162
-## 58: 2012-11-27    13646           13646
-## 59: 2012-11-28    10183           10183
-## 60: 2012-11-29     7047            7047
-## 61: 2012-11-30        0           10766
-##           date sumSteps sumStepsImputed
+##           date sumSteps sumStepsImputed isImputed
+##  1: 2012-10-01        0           10766      TRUE
+##  2: 2012-10-02      126             126     FALSE
+##  3: 2012-10-03    11352           11352     FALSE
+##  4: 2012-10-04    12116           12116     FALSE
+##  5: 2012-10-05    13294           13294     FALSE
+##  6: 2012-10-06    15420           15420     FALSE
+##  7: 2012-10-07    11015           11015     FALSE
+##  8: 2012-10-08        0           10766      TRUE
+##  9: 2012-10-09    12811           12811     FALSE
+## 10: 2012-10-10     9900            9900     FALSE
+## 11: 2012-10-11    10304           10304     FALSE
+## 12: 2012-10-12    17382           17382     FALSE
+## 13: 2012-10-13    12426           12426     FALSE
+## 14: 2012-10-14    15098           15098     FALSE
+## 15: 2012-10-15    10139           10139     FALSE
+## 16: 2012-10-16    15084           15084     FALSE
+## 17: 2012-10-17    13452           13452     FALSE
+## 18: 2012-10-18    10056           10056     FALSE
+## 19: 2012-10-19    11829           11829     FALSE
+## 20: 2012-10-20    10395           10395     FALSE
+## 21: 2012-10-21     8821            8821     FALSE
+## 22: 2012-10-22    13460           13460     FALSE
+## 23: 2012-10-23     8918            8918     FALSE
+## 24: 2012-10-24     8355            8355     FALSE
+## 25: 2012-10-25     2492            2492     FALSE
+## 26: 2012-10-26     6778            6778     FALSE
+## 27: 2012-10-27    10119           10119     FALSE
+## 28: 2012-10-28    11458           11458     FALSE
+## 29: 2012-10-29     5018            5018     FALSE
+## 30: 2012-10-30     9819            9819     FALSE
+## 31: 2012-10-31    15414           15414     FALSE
+## 32: 2012-11-01        0           10766      TRUE
+## 33: 2012-11-02    10600           10600     FALSE
+## 34: 2012-11-03    10571           10571     FALSE
+## 35: 2012-11-04        0           10766      TRUE
+## 36: 2012-11-05    10439           10439     FALSE
+## 37: 2012-11-06     8334            8334     FALSE
+## 38: 2012-11-07    12883           12883     FALSE
+## 39: 2012-11-08     3219            3219     FALSE
+## 40: 2012-11-09        0           10766      TRUE
+## 41: 2012-11-10        0           10766      TRUE
+## 42: 2012-11-11    12608           12608     FALSE
+## 43: 2012-11-12    10765           10765     FALSE
+## 44: 2012-11-13     7336            7336     FALSE
+## 45: 2012-11-14        0           10766      TRUE
+## 46: 2012-11-15       41              41     FALSE
+## 47: 2012-11-16     5441            5441     FALSE
+## 48: 2012-11-17    14339           14339     FALSE
+## 49: 2012-11-18    15110           15110     FALSE
+## 50: 2012-11-19     8841            8841     FALSE
+## 51: 2012-11-20     4472            4472     FALSE
+## 52: 2012-11-21    12787           12787     FALSE
+## 53: 2012-11-22    20427           20427     FALSE
+## 54: 2012-11-23    21194           21194     FALSE
+## 55: 2012-11-24    14478           14478     FALSE
+## 56: 2012-11-25    11834           11834     FALSE
+## 57: 2012-11-26    11162           11162     FALSE
+## 58: 2012-11-27    13646           13646     FALSE
+## 59: 2012-11-28    10183           10183     FALSE
+## 60: 2012-11-29     7047            7047     FALSE
+## 61: 2012-11-30        0           10766      TRUE
+##           date sumSteps sumStepsImputed isImputed
 ```
 
 
-Plot a histogram of the total number of steps taken each day.
+Plot a histogram of the total number of steps taken each day. Indicate dates with imputed values using a different color.
 
 
 ```r
-ggplot(dtDaily, aes(x = date, y = sumStepsImputed)) + geom_histogram(stat = "identity")
+ggplot(dtDaily, aes(x = date, y = sumStepsImputed, fill = isImputed)) + geom_histogram(stat = "identity", 
+    alpha = 1/2) + theme(legend.position = "bottom")
 ```
 
 ![plot of chunk histogramStepsTakenEachDayAfterImputation](figure/histogramStepsTakenEachDayAfterImputation.png) 
@@ -381,18 +406,20 @@ Calculate the mean and median total number of steps taken per day.
 
 
 ```r
-print(xtable(dtDaily[, list(mean = mean(sumStepsImputed), median = median(sumStepsImputed))]), 
+print(xtable(dtDaily[, list(meanBefore = mean(sumSteps), meanImputed = mean(sumStepsImputed), 
+    medianBefore = median(sumSteps), medianImputed = median(sumStepsImputed))]), 
     type = "html", include.rownames = FALSE)
 ```
 
 <!-- html table generated in R 3.0.2 by xtable 1.7-1 package -->
-<!-- Fri May 09 20:38:12 2014 -->
+<!-- Sun May 11 05:07:36 2014 -->
 <TABLE border=1>
-<TR> <TH> mean </TH> <TH> median </TH>  </TR>
-  <TR> <TD align="right"> 10766.19 </TD> <TD align="right"> 10766.19 </TD> </TR>
+<TR> <TH> meanBefore </TH> <TH> meanImputed </TH> <TH> medianBefore </TH> <TH> medianImputed </TH>  </TR>
+  <TR> <TD align="right"> 9354.23 </TD> <TD align="right"> 10766.19 </TD> <TD align="right"> 10395 </TD> <TD align="right"> 10766.19 </TD> </TR>
    </TABLE>
 
 
 The median of the imputed values isn't so different from the original values where missing values were not imputed.
 However, the mean of the imputed values is a bit higher from the original values.
-Strangely, the mean and median of the imputed values is the same.
+The overall impact of the imputed values is to raise the estimates of the number of steps taken each day.
+Before imputation, the number of steps taken was essentially zero.

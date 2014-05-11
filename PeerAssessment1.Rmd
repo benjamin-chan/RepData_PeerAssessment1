@@ -203,7 +203,9 @@ dt <- dt[, isStepsMissing := is.na(steps)]
 print(xtable(dt[, .N, isStepsMissing]), type="html", include.rownames=FALSE)
 ```
 
-Fit a model for the number of steps taken using the 5-minute interval as the predictor.
+Fit a linear model for the number of steps taken using the 5-minute interval as the predictor.
+Specify the 5-minute interval predictor as a factor class variable.
+This model estimates the mean number of steps taken for each 5-minute interval.
 Use the predicted values from this model to impute missing values; call this variable `stepsImputed`.
 
 ```{r}
@@ -218,28 +220,37 @@ Verify that there are no missing values for `stepsImputed`.
 print(xtable(dt[, .N, list(isMissing = is.na(stepsImputed))]), type="html", include.rownames=FALSE)
 ```
 
+Verify that missingness is complete for an entire day.
+
+```{r}
+dtMissingness <- dt[, list(countMissing = sum(isStepsMissing), countRecords = .N, propMissing = sum(isStepsMissing / .N)), date]
+dtMissingness[countMissing > 0]
+```
+
 #### After imputation of missing values
 
 Aggregate the number of steps taken each day.
 
 ```{r}
-dtDaily <- dt[, list(sumSteps = sum(steps, na.rm=TRUE), sumStepsImputed = sum(stepsImputed)), date]
+dtDaily <- dt[, list(sumSteps = sum(steps, na.rm=TRUE), sumStepsImputed = sum(stepsImputed), isImputed = sum(isStepsMissing) > 0), date]
 dtDaily
 ```
 
-Plot a histogram of the total number of steps taken each day.
+Plot a histogram of the total number of steps taken each day. Indicate dates with imputed values using a different color.
 
 ```{r histogramStepsTakenEachDayAfterImputation, fig.width=12}
-ggplot(dtDaily, aes(x=date, y=sumStepsImputed)) +
-	geom_histogram(stat="identity")
+ggplot(dtDaily, aes(x=date, y=sumStepsImputed, fill=isImputed)) +
+	geom_histogram(stat="identity", alpha=1/2) +
+  theme(legend.position="bottom")
 ```
 
 Calculate the mean and median total number of steps taken per day.
 
 ```{r, results='asis'}
-print(xtable(dtDaily[, list(mean = mean(sumStepsImputed), median = median(sumStepsImputed))]), type="html", include.rownames=FALSE)
+print(xtable(dtDaily[, list(meanBefore = mean(sumSteps), meanImputed = mean(sumStepsImputed), medianBefore = median(sumSteps), medianImputed = median(sumStepsImputed))]), type="html", include.rownames=FALSE)
 ```
 
 The median of the imputed values isn't so different from the original values where missing values were not imputed.
 However, the mean of the imputed values is a bit higher from the original values.
-Strangely, the mean and median of the imputed values is the same.
+The overall impact of the imputed values is to raise the estimates of the number of steps taken each day.
+Before imputation, the number of steps taken was essentially zero.
