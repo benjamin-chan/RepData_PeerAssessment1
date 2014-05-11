@@ -1,20 +1,311 @@
-# Reproducible Research: Peer Assessment 1
+Peer Assessment 1
+=================
+
+Peer assessment 1 assignment for Coursera course [Reproducible Research](Reproducible Research).
+
+> ## Introduction
+> 
+> It is now possible to collect a large amount of data about personal
+> movement using activity monitoring devices such as a
+> [Fitbit](http://www.fitbit.com), [Nike
+> Fuelband](http://www.nike.com/us/en_us/c/nikeplus-fuelband), or
+> [Jawbone Up](https://jawbone.com/up). These type of devices are part of
+> the "quantified self" movement -- a group of enthusiasts who take
+> measurements about themselves regularly to improve their health, to
+> find patterns in their behavior, or because they are tech geeks. But
+> these data remain under-utilized both because the raw data are hard to
+> obtain and there is a lack of statistical methods and software for
+> processing and interpreting the data.
+> 
+> This assignment makes use of data from a personal activity monitoring
+> device. This device collects data at 5 minute intervals through out the
+> day. The data consists of two months of data from an anonymous
+> individual collected during the months of October and November, 2012
+> and include the number of steps taken in 5 minute intervals each day.
+> 
+> ## Data
+> 
+> The data for this assignment can be downloaded from the course web
+> site:
+> 
+> * Dataset: [Activity monitoring data](https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip) [52K]
+> 
+> The variables included in this dataset are:
+> 
+> * **steps**: Number of steps taking in a 5-minute interval (missing
+>     values are coded as `NA`)
+> 
+> * **date**: The date on which the measurement was taken in YYYY-MM-DD
+>     format
+> 
+> * **interval**: Identifier for the 5-minute interval in which
+>     measurement was taken
+> 
+> 
+> 
+> 
+> The dataset is stored in a comma-separated-value (CSV) file and there
+> are a total of 17,568 observations in this
+> dataset.
+> 
+> 
+> ## Assignment
+> 
+> This assignment will be described in multiple parts. You will need to
+> write a report that answers the questions detailed below. Ultimately,
+> you will need to complete the entire assignment in a **single R
+> markdown** document that can be processed by **knitr** and be
+> transformed into an HTML file.
+> 
+> Throughout your report make sure you always include the code that you
+> used to generate the output you present. When writing code chunks in
+> the R markdown document, always use `echo = TRUE` so that someone else
+> will be able to read the code. **This assignment will be evaluated via
+> peer assessment so it is essential that your peer evaluators be able
+> to review the code for your analysis**.
+> 
+> For the plotting aspects of this assignment, feel free to use any
+> plotting system in R (i.e., base, lattice, ggplot2)
+> 
+> Fork/clone the [GitHub repository created for this
+> assignment](http://github.com/rdpeng/RepData_PeerAssessment1). You
+> will submit this assignment by pushing your completed files into your
+> forked repository on GitHub. The assignment submission will consist of
+> the URL to your GitHub repository and the SHA-1 commit ID for your
+> repository state.
+> 
+> NOTE: The GitHub repository also contains the dataset for the
+> assignment so you do not have to download the data separately.
+> 
+> 
+> 
+
+Load packages.
+
+```{r}
+packages <- c("data.table", "ggplot2", "xtable")
+sapply(packages, require, character.only=TRUE, quietly=TRUE)
+```
 
 
-## Loading and preprocessing the data
+> ### Loading and preprocessing the data
+> 
+> Show any code that is needed to
+> 
+> 1. Load the data (i.e. `read.csv()`)
+> 
+> 2. Process/transform the data (if necessary) into a format suitable for your analysis
+
+Unzip the data file.
+
+```{r, eval=FALSE}
+executable <- file.path("C:", "Program Files (x86)", "7-Zip", "7z.exe")
+parameters <- "x"
+f <- file.path(getwd(), "activity.zip")
+switch <- "-aoa"
+cmd <- paste(paste0("\"", executable, "\""), parameters, paste0("\"", f, "\""), switch)
+cmd
+system(cmd)
+```
+
+Read the CSV file.
+Convert the data frame to a data table using the [`data.table`](http://cran.r-project.org/web/packages/data.table/index.html) package.
+
+```{r}
+dt <- read.csv(file.path(getwd(), "activity.csv"))
+dt <- data.table(dt)
+setkey(dt, date, interval)
+```
+ 
+Verify that the number of rows in the dataset is the expected value of 17,568.
+
+```{r}
+message(sprintf("Is the number of rows in the dataset 17,568? %s", nrow(dt) == 17568))
+```
+
+Convert the `date` variable to a date class.
+And look at the structure of the dataset.
+
+```{r}
+dt <- dt[, date := as.Date(date)]
+str(dt)
+```
 
 
+> ### What is mean total number of steps taken per day?
+> 
+> For this part of the assignment, you can ignore the missing values in
+> the dataset.
+> 
+> 1. Make a histogram of the total number of steps taken each day
+> 
+> 2. Calculate and report the **mean** and **median** total number of steps taken per day
 
-## What is mean total number of steps taken per day?
+Aggregate the number of steps taken each day.
+Ignore the missing values.
+
+```{r}
+dtDaily <- dt[, list(sumSteps = sum(steps, na.rm=TRUE)), date]
+```
+
+Plot a histogram of the total number of steps taken each day.
+
+```{r histogramStepsTakenEachDay}
+ggplot(dtDaily, aes(x=date, y=sumSteps)) +
+	geom_histogram(stat="identity")
+```
+
+Calculate the mean and median total number of steps taken per day.
+
+```{r, results='asis'}
+print(xtable(dtDaily[, list(mean = mean(sumSteps), median = median(sumSteps))]), type="html", include.rownames=FALSE)
+```
 
 
+> ### What is the average daily activity pattern?
+> 
+> 1. Make a time series plot (i.e. `type = "l"`) of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
+> 
+> 2. Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
 
-## What is the average daily activity pattern?
+Aggregate the average number of steps taken by 5-minute interval.
+
+```{r}
+dtIntervals <- dt[, list(meanSteps = mean(steps, na.rm=TRUE)), interval]
+```
+
+Plot a time series of the 5-minute interval and the average number of steps taken across all days.
+
+```{r timeseriesStepsTakenEachInterval}
+ggplot(dtIntervals, aes(x=interval, y=meanSteps)) +
+	geom_line()
+```
 
 
+> ### Imputing missing values
+> 
+> Note that there are a number of days/intervals where there are missing
+> values (coded as `NA`). The presence of missing days may introduce
+> bias into some calculations or summaries of the data.
+> 
+> 1. Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with `NA`s)
+> 
+> 2. Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5-minute interval, etc.
+> 
+> 3. Create a new dataset that is equal to the original dataset but with the missing data filled in.
+> 
+> 4. Make a histogram of the total number of steps taken each day and Calculate and report the **mean** and **median** total number of steps taken per day. Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?
 
-## Imputing missing values
+Calculate the total number of missing values.
+
+```{r, results='asis'}
+dt <- dt[, isStepsMissing := is.na(steps)]
+print(xtable(dt[, .N, isStepsMissing]), type="html", include.rownames=FALSE)
+```
+
+Fit a linear model for the number of steps taken using the 5-minute interval as the predictor.
+Specify the 5-minute interval predictor as a factor class variable.
+This model estimates the mean number of steps taken for each 5-minute interval.
+Use the predicted values from this model to impute missing values; call this variable `stepsImputed`.
+
+```{r}
+M <- lm(steps ~ factor(interval), data=dt, na.action="na.exclude")
+dt <- dt[, stepsImputed := steps]
+dt$stepsImputed[dt$isStepsMissing] <- predict(M, newdata=dt)[dt$isStepsMissing]
+```
+
+Verify that there are no missing values for `stepsImputed`.
+
+```{r, results='asis'}
+print(xtable(dt[, .N, list(isMissing = is.na(stepsImputed))]), type="html", include.rownames=FALSE)
+```
+
+Verify that missingness is complete for an entire day.
+
+```{r}
+dtMissingness <- dt[, list(countMissing = sum(isStepsMissing), countRecords = .N, propMissing = sum(isStepsMissing / .N)), date]
+dtMissingness[countMissing > 0]
+```
+
+#### After imputation of missing values
+
+Aggregate the number of steps taken each day.
+
+```{r}
+dtDaily <- dt[, list(sumSteps = sum(steps, na.rm=TRUE), sumStepsImputed = sum(stepsImputed), isImputed = sum(isStepsMissing) > 0), date]
+dtDaily
+```
+
+Plot a histogram of the total number of steps taken each day. Indicate dates with imputed values using a different color.
+
+```{r histogramStepsTakenEachDayAfterImputation}
+ggplot(dtDaily, aes(x=date, y=sumStepsImputed, fill=isImputed)) +
+	geom_histogram(stat="identity", alpha=1/2) +
+	theme(legend.position="bottom")
+```
+
+Calculate the mean and median total number of steps taken per day.
+
+```{r, results='asis'}
+print(xtable(dtDaily[, list(meanBefore = mean(sumSteps), meanImputed = mean(sumStepsImputed), medianBefore = median(sumSteps), medianImputed = median(sumStepsImputed))]), type="html", include.rownames=FALSE)
+```
+
+The median of the imputed values isn't so different from the original values where missing values were not imputed.
+However, the mean of the imputed values is a bit higher from the original values.
+The overall impact of the imputed values is to raise the estimates of the number of steps taken each day.
+Before imputation, the number of steps taken was essentially zero.
 
 
+> ### Are there differences in activity patterns between weekdays and weekends?
+> 
+> For this part the `weekdays()` function may be of some help here. Use
+> the dataset with the filled-in missing values for this part.
+> 
+> 1. Create a new factor variable in the dataset with two levels -- "weekday" and "weekend" indicating whether a given date is a weekday or weekend day.
+> 
+> 1. Make a panel plot containing a time series plot (i.e. `type = "l"`) of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). The plot should look something like the following, which was creating using **simulated data**:
+> 
+> ![Sample panel plot](instructions_fig/sample_panelplot.png) 
+> 
+> **Your plot will look different from the one above** because you will
+> be using the activity monitor data. Note that the above plot was made
+> using the lattice system but you can make the same version of the plot
+> using any plotting system you choose.
 
-## Are there differences in activity patterns between weekdays and weekends?
+Create a new factor variable in the dataset with two levels -- "weekday" and "weekend" indicating whether a given date is a weekday or weekend day.
+Use this solution to [collapse the factor values](http://stackoverflow.com/a/9053619) for day of week.
+Verify that `dayOfWeek` and `dayType` are factor class variables.
+
+```{r}
+levels <- c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday")
+newLevels <- c("Weekend", rep("Weekday", 5), "Weekend")
+dt <- dt[, dayOfWeek := factor(weekdays(date), levels=levels)]
+dt <- dt[, dayType := factor(newLevels[dayOfWeek])]
+dt[, .N, list(dayType, dayOfWeek)]
+message(sprintf("Is dayOfWeek a factor? %s. Is dayType a factor? %s", is.factor(dt$dayOfWeek), is.factor(dt$dayType)))
+```
+
+Aggregate the average number of steps taken by 5-minute interval.
+Use the imputed values in the `stepsImputed` variable.
+
+```{r}
+dtIntervals <- dt[, list(meanSteps = mean(stepsImputed, na.rm=TRUE)), list(dayType, interval)]
+```
+
+Plot two time series (one for weekdays and the other for weekends) of the 5-minute intervals and average number of steps taken (imputed values).
+
+```{r timeseriesStepsTakenEachIntervalByDayTypePanel}
+ggplot(dtIntervals, aes(x=interval, y=meanSteps, color=dayType)) +
+	geom_line() +
+	facet_wrap(~ dayType, nrow=2) +
+	theme(legend.position="none")
+```
+
+It's a bit hard to discern any differences.
+So overlay the time series on a single plot instead of using a panel plot.
+
+```{r timeseriesStepsTakenEachIntervalByDayType}
+ggplot(dtIntervals, aes(x=interval, y=meanSteps, color=dayType)) +
+	geom_line() +
+	theme(legend.position="bottom")
+```
