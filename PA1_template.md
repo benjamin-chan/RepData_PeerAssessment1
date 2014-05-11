@@ -205,7 +205,7 @@ print(xtable(dtDaily[, list(mean = mean(sumSteps), median = median(sumSteps))]),
 ```
 
 <!-- html table generated in R 3.0.2 by xtable 1.7-1 package -->
-<!-- Sun May 11 07:29:20 2014 -->
+<!-- Sun May 11 07:33:42 2014 -->
 <TABLE border=1>
 <TR> <TH> mean </TH> <TH> median </TH>  </TR>
   <TR> <TD align="right"> 9354.23 </TD> <TD align="right"> 10395 </TD> </TR>
@@ -261,7 +261,7 @@ print(xtable(dt[, .N, isStepsMissing]), type = "html", include.rownames = FALSE)
 ```
 
 <!-- html table generated in R 3.0.2 by xtable 1.7-1 package -->
-<!-- Sun May 11 07:29:20 2014 -->
+<!-- Sun May 11 07:33:43 2014 -->
 <TABLE border=1>
 <TR> <TH> isStepsMissing </TH> <TH> N </TH>  </TR>
   <TR> <TD> TRUE </TD> <TD align="right"> 2304 </TD> </TR>
@@ -291,7 +291,7 @@ print(xtable(dt[, .N, list(isMissing = is.na(stepsImputed))]), type = "html",
 ```
 
 <!-- html table generated in R 3.0.2 by xtable 1.7-1 package -->
-<!-- Sun May 11 07:29:23 2014 -->
+<!-- Sun May 11 07:33:46 2014 -->
 <TABLE border=1>
 <TR> <TH> isMissing </TH> <TH> N </TH>  </TR>
   <TR> <TD> FALSE </TD> <TD align="right"> 17568 </TD> </TR>
@@ -422,7 +422,7 @@ print(xtable(dtDaily[, list(meanBefore = mean(sumSteps), meanImputed = mean(sumS
 ```
 
 <!-- html table generated in R 3.0.2 by xtable 1.7-1 package -->
-<!-- Sun May 11 07:29:23 2014 -->
+<!-- Sun May 11 07:33:46 2014 -->
 <TABLE border=1>
 <TR> <TH> meanBefore </TH> <TH> meanImputed </TH> <TH> medianBefore </TH> <TH> medianImputed </TH>  </TR>
   <TR> <TD align="right"> 9354.23 </TD> <TD align="right"> 10766.19 </TD> <TD align="right"> 10395 </TD> <TD align="right"> 10766.19 </TD> </TR>
@@ -518,3 +518,53 @@ ggplot(dtIntervals, aes(x = interval, y = meanSteps, color = dayType)) + geom_li
 
 ![plot of chunk timeseriesStepsTakenEachIntervalByDayType](figure/timeseriesStepsTakenEachIntervalByDayType.png) 
 
+
+
+> ## Submitting the Assignment
+> 
+> To submit the assignment:
+> 
+> 1. Commit the your completed `PA1_template.Rmd` file to the `master` branch of
+> your git repository (you should already be on the `master` branch unless you
+> created new ones)
+> 
+> 2. Commit your `PA1_template.md` and `PA1_template.html` files produced by
+> processing your R markdown file with `knit2html()` function in R (from the
+> **knitr** package)
+> 
+> 3. If your document has figures included (it should) then they should have
+> been placed in the `figures/` directory by default (unless you overrided the
+> default). Add and commit the `figures/` directory to yoru git repository.
+> 
+> 4. Push your `master` branch to GitHub.
+> 
+> 5. Submit the URL to your GitHub repository for this assignment on the course
+> web site.
+> 
+> In addition to submitting the URL for your GitHub repository, you will
+> need to submit the 40 character SHA-1 hash (as string of numbers from
+> 0-9 and letters from a-f) that identifies the repository commit that
+> contains the version of the files you want to submit. You can do this
+> in GitHub by doing the following
+> 
+> 1. Going to your GitHub repository web page for this assignment
+> 
+> 2. Click on the "?? commits" link where ?? is the number of commits you have
+> in the repository. For example, if you made a total of 10 commits to this
+> repository, the link should say "10 commits".
+> 
+> 3. You will see a list of commits that you have made to this repository. The
+> most recent commit is at the very top. If this represents the version of the
+> files you want to submit, then just click the "copy to clipboard" button on
+> the right hand side that should appear when you hover over the SHA-1 hash.
+> Paste this SHA-1 hash into the course web site when you submit your
+> assignment. If you don't want to use the most recent commit, then go down and
+> find the commit you want and copy the SHA-1 hash.> 
+> 
+> A valid submission will look something like (this is just an **example**!)
+> 
+> ```r
+> https://github.com/rdpeng/RepData_PeerAssessment1
+> 
+> 7c376cc5447f11537f8740af8e07d6facc3d9645
+> ```
