@@ -83,7 +83,7 @@ Peer assessment 1 assignment for Coursera course [Reproducible Research](Reprodu
 Load packages.
 
 ```{r}
-packages <- c("data.table", "ggplot2", "xtable")
+packages <- c("data.table", "ggplot2", "xtable", "mice")
 sapply(packages, require, character.only=TRUE, quietly=TRUE)
 ```
 
@@ -203,12 +203,15 @@ dt <- dt[, isStepsMissing := is.na(steps)]
 print(xtable(dt[, .N, isStepsMissing]), type="html", include.rownames=FALSE)
 ```
 
-Fit a linear model for the number of steps taken using the 5-minute interval as the predictor.
-Specify the 5-minute interval predictor as a factor class variable.
-This model estimates the mean number of steps taken for each 5-minute interval.
+Use the [mice](http://cran.r-project.org/web/packages/mice/index.html) package to impute missing values of the `steps` variable.
+Mice generates Multivariate Imputations by Chained Equations.
 Use the predicted values from this model to impute missing values; call this variable `stepsImputed`.
 
 ```{r}
+imputed <- mice(dt[, list(steps, dateNumeric = as.numeric(date), interval)])
+```
+
+```{r, eval=FALSE}
 M <- lm(steps ~ factor(interval), data=dt, na.action="na.exclude")
 dt <- dt[, stepsImputed := steps]
 dt$stepsImputed[dt$isStepsMissing] <- predict(M, newdata=dt)[dt$isStepsMissing]
