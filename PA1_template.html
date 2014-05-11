@@ -287,7 +287,12 @@ switch &lt;- &quot;-aoa&quot;
 cmd &lt;- paste(paste0(&quot;\&quot;&quot;, executable, &quot;\&quot;&quot;), parameters, paste0(&quot;\&quot;&quot;, f, &quot;\&quot;&quot;), 
     switch)
 cmd
-system(cmd)
+</code></pre>
+
+<pre><code>## [1] &quot;\&quot;C:/Program Files (x86)/7-Zip/7z.exe\&quot; x \&quot;C:/Users/Ben/Documents/GitHub repositories/RepData_PeerAssessment1/activity.zip\&quot; -aoa&quot;
+</code></pre>
+
+<pre><code class="r">system(cmd)
 </code></pre>
 
 <p>Read the CSV file.
@@ -354,7 +359,7 @@ Ignore the missing values.</p>
 
 <!-- html table generated in R 3.0.2 by xtable 1.7-1 package -->
 
-<!-- Sun May 11 06:32:33 2014 -->
+<!-- Sun May 11 07:29:20 2014 -->
 
 <TABLE border=1>
 <TR> <TH> mean </TH> <TH> median </TH>  </TR>
@@ -405,7 +410,7 @@ print(xtable(dt[, .N, isStepsMissing]), type = &quot;html&quot;, include.rowname
 
 <!-- html table generated in R 3.0.2 by xtable 1.7-1 package -->
 
-<!-- Sun May 11 06:32:33 2014 -->
+<!-- Sun May 11 07:29:20 2014 -->
 
 <TABLE border=1>
 <TR> <TH> isStepsMissing </TH> <TH> N </TH>  </TR>
@@ -431,14 +436,17 @@ dt$stepsImputed[dt$isStepsMissing] &lt;- predict(M, newdata = dt)[dt$isStepsMiss
 
 <!-- html table generated in R 3.0.2 by xtable 1.7-1 package -->
 
-<!-- Sun May 11 06:32:36 2014 -->
+<!-- Sun May 11 07:29:23 2014 -->
 
 <TABLE border=1>
 <TR> <TH> isMissing </TH> <TH> N </TH>  </TR>
   <TR> <TD> FALSE </TD> <TD align="right"> 17568 </TD> </TR>
    </TABLE>
 
-<p>Verify that missingness is complete for an entire day.</p>
+<p>Verify that missingness is complete for an entire day.
+Show all days with at least 1 missing value for the <code>steps</code> variable.
+Calculate the proportion of records with missing values for each such day.
+All proportions are 100%.</p>
 
 <pre><code class="r">dtMissingness &lt;- dt[, list(countMissing = sum(isStepsMissing), countRecords = .N, 
     propMissing = sum(isStepsMissing/.N)), date]
@@ -547,7 +555,7 @@ dtDaily
 
 <!-- html table generated in R 3.0.2 by xtable 1.7-1 package -->
 
-<!-- Sun May 11 06:32:37 2014 -->
+<!-- Sun May 11 07:29:23 2014 -->
 
 <TABLE border=1>
 <TR> <TH> meanBefore </TH> <TH> meanImputed </TH> <TH> medianBefore </TH> <TH> medianImputed </TH>  </TR>

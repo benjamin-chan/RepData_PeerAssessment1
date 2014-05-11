@@ -114,6 +114,13 @@ switch <- "-aoa"
 cmd <- paste(paste0("\"", executable, "\""), parameters, paste0("\"", f, "\""), 
     switch)
 cmd
+```
+
+```
+## [1] "\"C:/Program Files (x86)/7-Zip/7z.exe\" x \"C:/Users/Ben/Documents/GitHub repositories/RepData_PeerAssessment1/activity.zip\" -aoa"
+```
+
+```r
 system(cmd)
 ```
 
@@ -198,7 +205,7 @@ print(xtable(dtDaily[, list(mean = mean(sumSteps), median = median(sumSteps))]),
 ```
 
 <!-- html table generated in R 3.0.2 by xtable 1.7-1 package -->
-<!-- Sun May 11 06:32:33 2014 -->
+<!-- Sun May 11 07:29:20 2014 -->
 <TABLE border=1>
 <TR> <TH> mean </TH> <TH> median </TH>  </TR>
   <TR> <TD align="right"> 9354.23 </TD> <TD align="right"> 10395 </TD> </TR>
@@ -254,7 +261,7 @@ print(xtable(dt[, .N, isStepsMissing]), type = "html", include.rownames = FALSE)
 ```
 
 <!-- html table generated in R 3.0.2 by xtable 1.7-1 package -->
-<!-- Sun May 11 06:32:33 2014 -->
+<!-- Sun May 11 07:29:20 2014 -->
 <TABLE border=1>
 <TR> <TH> isStepsMissing </TH> <TH> N </TH>  </TR>
   <TR> <TD> TRUE </TD> <TD align="right"> 2304 </TD> </TR>
@@ -284,7 +291,7 @@ print(xtable(dt[, .N, list(isMissing = is.na(stepsImputed))]), type = "html",
 ```
 
 <!-- html table generated in R 3.0.2 by xtable 1.7-1 package -->
-<!-- Sun May 11 06:32:36 2014 -->
+<!-- Sun May 11 07:29:23 2014 -->
 <TABLE border=1>
 <TR> <TH> isMissing </TH> <TH> N </TH>  </TR>
   <TR> <TD> FALSE </TD> <TD align="right"> 17568 </TD> </TR>
@@ -292,6 +299,9 @@ print(xtable(dt[, .N, list(isMissing = is.na(stepsImputed))]), type = "html",
 
 
 Verify that missingness is complete for an entire day.
+Show all days with at least 1 missing value for the `steps` variable.
+Calculate the proportion of records with missing values for each such day.
+All proportions are 100%.
 
 
 ```r
@@ -412,7 +422,7 @@ print(xtable(dtDaily[, list(meanBefore = mean(sumSteps), meanImputed = mean(sumS
 ```
 
 <!-- html table generated in R 3.0.2 by xtable 1.7-1 package -->
-<!-- Sun May 11 06:32:37 2014 -->
+<!-- Sun May 11 07:29:23 2014 -->
 <TABLE border=1>
 <TR> <TH> meanBefore </TH> <TH> meanImputed </TH> <TH> medianBefore </TH> <TH> medianImputed </TH>  </TR>
   <TR> <TD align="right"> 9354.23 </TD> <TD align="right"> 10766.19 </TD> <TD align="right"> 10395 </TD> <TD align="right"> 10766.19 </TD> </TR>

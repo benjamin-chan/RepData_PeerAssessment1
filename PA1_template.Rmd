@@ -98,7 +98,7 @@ sapply(packages, require, character.only=TRUE, quietly=TRUE)
 
 Unzip the data file.
 
-```{r, eval=FALSE}
+```{r}
 executable <- file.path("C:", "Program Files (x86)", "7-Zip", "7z.exe")
 parameters <- "x"
 f <- file.path(getwd(), "activity.zip")
@@ -221,6 +221,9 @@ print(xtable(dt[, .N, list(isMissing = is.na(stepsImputed))]), type="html", incl
 ```
 
 Verify that missingness is complete for an entire day.
+Show all days with at least 1 missing value for the `steps` variable.
+Calculate the proportion of records with missing values for each such day.
+All proportions are 100%.
 
 ```{r}
 dtMissingness <- dt[, list(countMissing = sum(isStepsMissing), countRecords = .N, propMissing = sum(isStepsMissing / .N)), date]
