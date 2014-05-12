@@ -203,26 +203,11 @@ dt <- dt[, isStepsMissing := is.na(steps)]
 print(xtable(dt[, .N, isStepsMissing]), type="html", include.rownames=FALSE)
 ```
 
-Use the [mice](http://cran.r-project.org/web/packages/mice/index.html) package to impute missing values of the `steps` variable.
-Mice generates Multivariate Imputations by Chained Equations.
-Use the predicted values from this model to impute missing values; call this variable `stepsImputed`.
-
-```{r}
-imputed <- mice(dt[, list(steps, dateNumeric = as.numeric(date), interval)])
-```
-
 Use the [mi](http://cran.r-project.org/web/packages/mi/index.html) package to impute missing values of the `steps` variable.
-Use simple random imputation.
+Use simple random imputation with a bootstrap method.
 
 ```{r}
-dt <- dt[, stepsImputed := steps]
 dt <- dt[, stepsImputed := random.imp(dt[, list(steps)])]
-```
-
-```{r, eval=FALSE}
-M <- lm(steps ~ factor(interval), data=dt, na.action="na.exclude")
-dt <- dt[, stepsImputed := steps]
-dt$stepsImputed[dt$isStepsMissing] <- predict(M, newdata=dt)[dt$isStepsMissing]
 ```
 
 Verify that there are no missing values for `stepsImputed`.

@@ -84,13 +84,51 @@ Load packages.
 
 
 ```r
-packages <- c("data.table", "ggplot2", "xtable")
+packages <- c("data.table", "ggplot2", "xtable", "mice", "mi")
 sapply(packages, require, character.only = TRUE, quietly = TRUE)
 ```
 
 ```
-## data.table    ggplot2     xtable 
-##       TRUE       TRUE       TRUE
+## Warning: package 'mice' was built under R version 3.0.3 Warning: package
+## 'Rcpp' was built under R version 3.0.3
+```
+
+```
+## mice 2.21 2014-02-05
+```
+
+```
+## Warning: package 'mi' was built under R version 3.0.3 Warning: package
+## 'arm' was built under R version 3.0.3
+```
+
+```
+## Loading required package: MASS Loading required package: Matrix Loading
+## required package: lattice Loading required package: lme4
+## 
+## Attaching package: 'lme4'
+## 
+## The following object is masked from 'package:ggplot2':
+## 
+## fortify
+## 
+## arm (Version 1.7-03, built: 2014-4-27)
+## 
+## Working directory is C:/Users/Ben/Documents/GitHub
+## repositories/RepData_PeerAssessment1
+## 
+## Attaching package: 'arm'
+## 
+## The following object is masked from 'package:xtable':
+## 
+## display
+## 
+## mi (Version 0.09-18.03, built: 2013-8-22)
+```
+
+```
+## data.table    ggplot2     xtable       mice         mi 
+##       TRUE       TRUE       TRUE       TRUE       TRUE
 ```
 
 
@@ -205,7 +243,7 @@ print(xtable(dtDaily[, list(mean = mean(sumSteps), median = median(sumSteps))]),
 ```
 
 <!-- html table generated in R 3.0.2 by xtable 1.7-1 package -->
-<!-- Sun May 11 07:33:42 2014 -->
+<!-- Sun May 11 13:42:30 2014 -->
 <TABLE border=1>
 <TR> <TH> mean </TH> <TH> median </TH>  </TR>
   <TR> <TD align="right"> 9354.23 </TD> <TD align="right"> 10395 </TD> </TR>
@@ -261,7 +299,7 @@ print(xtable(dt[, .N, isStepsMissing]), type = "html", include.rownames = FALSE)
 ```
 
 <!-- html table generated in R 3.0.2 by xtable 1.7-1 package -->
-<!-- Sun May 11 07:33:43 2014 -->
+<!-- Sun May 11 13:42:30 2014 -->
 <TABLE border=1>
 <TR> <TH> isStepsMissing </TH> <TH> N </TH>  </TR>
   <TR> <TD> TRUE </TD> <TD align="right"> 2304 </TD> </TR>
@@ -269,16 +307,12 @@ print(xtable(dt[, .N, isStepsMissing]), type = "html", include.rownames = FALSE)
    </TABLE>
 
 
-Fit a linear model for the number of steps taken using the 5-minute interval as the predictor.
-Specify the 5-minute interval predictor as a factor class variable.
-This model estimates the mean number of steps taken for each 5-minute interval.
-Use the predicted values from this model to impute missing values; call this variable `stepsImputed`.
+Use the [mi](http://cran.r-project.org/web/packages/mi/index.html) package to impute missing values of the `steps` variable.
+Use simple random imputation with a bootstrap method.
 
 
 ```r
-M <- lm(steps ~ factor(interval), data = dt, na.action = "na.exclude")
-dt <- dt[, `:=`(stepsImputed, steps)]
-dt$stepsImputed[dt$isStepsMissing] <- predict(M, newdata = dt)[dt$isStepsMissing]
+dt <- dt[, `:=`(stepsImputed, random.imp(dt[, list(steps)]))]
 ```
 
 
@@ -291,7 +325,7 @@ print(xtable(dt[, .N, list(isMissing = is.na(stepsImputed))]), type = "html",
 ```
 
 <!-- html table generated in R 3.0.2 by xtable 1.7-1 package -->
-<!-- Sun May 11 07:33:46 2014 -->
+<!-- Sun May 11 13:42:30 2014 -->
 <TABLE border=1>
 <TR> <TH> isMissing </TH> <TH> N </TH>  </TR>
   <TR> <TD> FALSE </TD> <TD align="right"> 17568 </TD> </TR>
@@ -336,14 +370,14 @@ dtDaily
 
 ```
 ##           date sumSteps sumStepsImputed isImputed
-##  1: 2012-10-01        0           10766      TRUE
+##  1: 2012-10-01        0           10106      TRUE
 ##  2: 2012-10-02      126             126     FALSE
 ##  3: 2012-10-03    11352           11352     FALSE
 ##  4: 2012-10-04    12116           12116     FALSE
 ##  5: 2012-10-05    13294           13294     FALSE
 ##  6: 2012-10-06    15420           15420     FALSE
 ##  7: 2012-10-07    11015           11015     FALSE
-##  8: 2012-10-08        0           10766      TRUE
+##  8: 2012-10-08        0           10966      TRUE
 ##  9: 2012-10-09    12811           12811     FALSE
 ## 10: 2012-10-10     9900            9900     FALSE
 ## 11: 2012-10-11    10304           10304     FALSE
@@ -367,20 +401,20 @@ dtDaily
 ## 29: 2012-10-29     5018            5018     FALSE
 ## 30: 2012-10-30     9819            9819     FALSE
 ## 31: 2012-10-31    15414           15414     FALSE
-## 32: 2012-11-01        0           10766      TRUE
+## 32: 2012-11-01        0           12909      TRUE
 ## 33: 2012-11-02    10600           10600     FALSE
 ## 34: 2012-11-03    10571           10571     FALSE
-## 35: 2012-11-04        0           10766      TRUE
+## 35: 2012-11-04        0           11321      TRUE
 ## 36: 2012-11-05    10439           10439     FALSE
 ## 37: 2012-11-06     8334            8334     FALSE
 ## 38: 2012-11-07    12883           12883     FALSE
 ## 39: 2012-11-08     3219            3219     FALSE
-## 40: 2012-11-09        0           10766      TRUE
-## 41: 2012-11-10        0           10766      TRUE
+## 40: 2012-11-09        0           10411      TRUE
+## 41: 2012-11-10        0            7376      TRUE
 ## 42: 2012-11-11    12608           12608     FALSE
 ## 43: 2012-11-12    10765           10765     FALSE
 ## 44: 2012-11-13     7336            7336     FALSE
-## 45: 2012-11-14        0           10766      TRUE
+## 45: 2012-11-14        0            9797      TRUE
 ## 46: 2012-11-15       41              41     FALSE
 ## 47: 2012-11-16     5441            5441     FALSE
 ## 48: 2012-11-17    14339           14339     FALSE
@@ -396,7 +430,7 @@ dtDaily
 ## 58: 2012-11-27    13646           13646     FALSE
 ## 59: 2012-11-28    10183           10183     FALSE
 ## 60: 2012-11-29     7047            7047     FALSE
-## 61: 2012-11-30        0           10766      TRUE
+## 61: 2012-11-30        0            8831      TRUE
 ##           date sumSteps sumStepsImputed isImputed
 ```
 
@@ -422,10 +456,10 @@ print(xtable(dtDaily[, list(meanBefore = mean(sumSteps), meanImputed = mean(sumS
 ```
 
 <!-- html table generated in R 3.0.2 by xtable 1.7-1 package -->
-<!-- Sun May 11 07:33:46 2014 -->
+<!-- Sun May 11 13:42:31 2014 -->
 <TABLE border=1>
 <TR> <TH> meanBefore </TH> <TH> meanImputed </TH> <TH> medianBefore </TH> <TH> medianImputed </TH>  </TR>
-  <TR> <TD align="right"> 9354.23 </TD> <TD align="right"> 10766.19 </TD> <TD align="right"> 10395 </TD> <TD align="right"> 10766.19 </TD> </TR>
+  <TR> <TD align="right"> 9354.23 </TD> <TD align="right"> 10693.85 </TD> <TD align="right"> 10395 </TD> <TD align="right"> 10600 </TD> </TR>
    </TABLE>
 
 
