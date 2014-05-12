@@ -84,51 +84,30 @@ Load packages.
 
 
 ```r
-packages <- c("data.table", "ggplot2", "xtable", "mice", "mi")
+packages <- c("data.table", "ggplot2", "xtable", "VIM")
 sapply(packages, require, character.only = TRUE, quietly = TRUE)
 ```
 
 ```
-## Warning: package 'mice' was built under R version 3.0.3 Warning: package
-## 'Rcpp' was built under R version 3.0.3
+## Warning: package 'VIM' was built under R version 3.0.3
 ```
 
 ```
-## mice 2.21 2014-02-05
+## VIM is ready to use.  Since version 4.0.0 the GUI is in its own package
+## VIMGUI.
+## 
+## Please use the package to use the new (and old) GUI.
+## 
+## Attaching package: 'VIM'
+## 
+## The following object is masked from 'package:datasets':
+## 
+## sleep
 ```
 
 ```
-## Warning: package 'mi' was built under R version 3.0.3 Warning: package
-## 'arm' was built under R version 3.0.3
-```
-
-```
-## Loading required package: MASS Loading required package: Matrix Loading
-## required package: lattice Loading required package: lme4
-## 
-## Attaching package: 'lme4'
-## 
-## The following object is masked from 'package:ggplot2':
-## 
-## fortify
-## 
-## arm (Version 1.7-03, built: 2014-4-27)
-## 
-## Working directory is C:/Users/Ben/Documents/GitHub
-## repositories/RepData_PeerAssessment1
-## 
-## Attaching package: 'arm'
-## 
-## The following object is masked from 'package:xtable':
-## 
-## display
-## 
-## mi (Version 0.09-18.03, built: 2013-8-22)
-```
-
-```
-## data.table    ggplot2     xtable       mice         mi 
-##       TRUE       TRUE       TRUE       TRUE       TRUE
+## data.table    ggplot2     xtable        VIM 
+##       TRUE       TRUE       TRUE       TRUE
 ```
 
 
@@ -170,7 +149,6 @@ Convert the data frame to a data table using the [`data.table`](http://cran.r-pr
 ```r
 dt <- read.csv(file.path(getwd(), "activity.csv"))
 dt <- data.table(dt)
-setkey(dt, date, interval)
 ```
 
  
@@ -193,6 +171,7 @@ And look at the structure of the dataset.
 
 ```r
 dt <- dt[, `:=`(date, as.Date(date))]
+setkey(dt, date, interval)
 str(dt)
 ```
 
@@ -201,7 +180,8 @@ str(dt)
 ##  $ steps   : int  NA NA NA NA NA NA NA NA NA NA ...
 ##  $ date    : Date, format: "2012-10-01" "2012-10-01" ...
 ##  $ interval: int  0 5 10 15 20 25 30 35 40 45 ...
-##  - attr(*, ".internal.selfref")=<externalptr>
+##  - attr(*, ".internal.selfref")=<externalptr> 
+##  - attr(*, "sorted")= chr  "date" "interval"
 ```
 
 
@@ -238,14 +218,14 @@ Calculate the mean and median total number of steps taken per day.
 
 
 ```r
-print(xtable(dtDaily[, list(mean = mean(sumSteps), median = median(sumSteps))]), 
+print(xtable(dtDaily[, list(meanBeforeImputing = mean(sumSteps), medianBeforeImputing = median(sumSteps))]), 
     type = "html", include.rownames = FALSE)
 ```
 
 <!-- html table generated in R 3.0.2 by xtable 1.7-1 package -->
-<!-- Sun May 11 13:42:30 2014 -->
+<!-- Sun May 11 23:58:05 2014 -->
 <TABLE border=1>
-<TR> <TH> mean </TH> <TH> median </TH>  </TR>
+<TR> <TH> meanBeforeImputing </TH> <TH> medianBeforeImputing </TH>  </TR>
   <TR> <TD align="right"> 9354.23 </TD> <TD align="right"> 10395 </TD> </TR>
    </TABLE>
 
@@ -299,7 +279,7 @@ print(xtable(dt[, .N, isStepsMissing]), type = "html", include.rownames = FALSE)
 ```
 
 <!-- html table generated in R 3.0.2 by xtable 1.7-1 package -->
-<!-- Sun May 11 13:42:30 2014 -->
+<!-- Sun May 11 23:58:05 2014 -->
 <TABLE border=1>
 <TR> <TH> isStepsMissing </TH> <TH> N </TH>  </TR>
   <TR> <TD> TRUE </TD> <TD align="right"> 2304 </TD> </TR>
@@ -307,25 +287,36 @@ print(xtable(dt[, .N, isStepsMissing]), type = "html", include.rownames = FALSE)
    </TABLE>
 
 
-Use the [mi](http://cran.r-project.org/web/packages/mi/index.html) package to impute missing values of the `steps` variable.
-Use simple random imputation with a bootstrap method.
+Use the [VIM](http://cran.r-project.org/web/packages/VIM/index.html) package to impute missing values of the `steps` variable.
+Use k-Nearest Neighbour Imputation.
+I couldn't get Iterative robust model-based imputation (IRMI) to work; try again later.
 
 
 ```r
-dt <- dt[, `:=`(stepsImputed, random.imp(dt[, list(steps)]))]
+dt <- kNN(dt)
+```
+
+```
+## Time difference of -7.972 secs
+```
+
+```r
+# dt <- irmi(dt)
 ```
 
 
-Verify that there are no missing values for `stepsImputed`.
+The `kNN` function returns a dataset with all `NA`s replaced.
+So the `steps` variable now contains imputed values replacing the `NA`s.
+
+Verify that there are no missing values for `steps` after imputation.
 
 
 ```r
-print(xtable(dt[, .N, list(isMissing = is.na(stepsImputed))]), type = "html", 
-    include.rownames = FALSE)
+print(xtable(dt[, .N, list(isMissing = is.na(steps))]), type = "html", include.rownames = FALSE)
 ```
 
 <!-- html table generated in R 3.0.2 by xtable 1.7-1 package -->
-<!-- Sun May 11 13:42:30 2014 -->
+<!-- Sun May 11 23:58:13 2014 -->
 <TABLE border=1>
 <TR> <TH> isMissing </TH> <TH> N </TH>  </TR>
   <TR> <TD> FALSE </TD> <TD align="right"> 17568 </TD> </TR>
@@ -363,75 +354,75 @@ Aggregate the number of steps taken each day.
 
 
 ```r
-dtDaily <- dt[, list(sumSteps = sum(steps, na.rm = TRUE), sumStepsImputed = sum(stepsImputed), 
-    isImputed = sum(isStepsMissing) > 0), date]
+dtDaily <- dt[, list(sumSteps = sum(steps, na.rm = TRUE), isImputed = sum(steps_imp) > 
+    0), date]
 dtDaily
 ```
 
 ```
-##           date sumSteps sumStepsImputed isImputed
-##  1: 2012-10-01        0           10106      TRUE
-##  2: 2012-10-02      126             126     FALSE
-##  3: 2012-10-03    11352           11352     FALSE
-##  4: 2012-10-04    12116           12116     FALSE
-##  5: 2012-10-05    13294           13294     FALSE
-##  6: 2012-10-06    15420           15420     FALSE
-##  7: 2012-10-07    11015           11015     FALSE
-##  8: 2012-10-08        0           10966      TRUE
-##  9: 2012-10-09    12811           12811     FALSE
-## 10: 2012-10-10     9900            9900     FALSE
-## 11: 2012-10-11    10304           10304     FALSE
-## 12: 2012-10-12    17382           17382     FALSE
-## 13: 2012-10-13    12426           12426     FALSE
-## 14: 2012-10-14    15098           15098     FALSE
-## 15: 2012-10-15    10139           10139     FALSE
-## 16: 2012-10-16    15084           15084     FALSE
-## 17: 2012-10-17    13452           13452     FALSE
-## 18: 2012-10-18    10056           10056     FALSE
-## 19: 2012-10-19    11829           11829     FALSE
-## 20: 2012-10-20    10395           10395     FALSE
-## 21: 2012-10-21     8821            8821     FALSE
-## 22: 2012-10-22    13460           13460     FALSE
-## 23: 2012-10-23     8918            8918     FALSE
-## 24: 2012-10-24     8355            8355     FALSE
-## 25: 2012-10-25     2492            2492     FALSE
-## 26: 2012-10-26     6778            6778     FALSE
-## 27: 2012-10-27    10119           10119     FALSE
-## 28: 2012-10-28    11458           11458     FALSE
-## 29: 2012-10-29     5018            5018     FALSE
-## 30: 2012-10-30     9819            9819     FALSE
-## 31: 2012-10-31    15414           15414     FALSE
-## 32: 2012-11-01        0           12909      TRUE
-## 33: 2012-11-02    10600           10600     FALSE
-## 34: 2012-11-03    10571           10571     FALSE
-## 35: 2012-11-04        0           11321      TRUE
-## 36: 2012-11-05    10439           10439     FALSE
-## 37: 2012-11-06     8334            8334     FALSE
-## 38: 2012-11-07    12883           12883     FALSE
-## 39: 2012-11-08     3219            3219     FALSE
-## 40: 2012-11-09        0           10411      TRUE
-## 41: 2012-11-10        0            7376      TRUE
-## 42: 2012-11-11    12608           12608     FALSE
-## 43: 2012-11-12    10765           10765     FALSE
-## 44: 2012-11-13     7336            7336     FALSE
-## 45: 2012-11-14        0            9797      TRUE
-## 46: 2012-11-15       41              41     FALSE
-## 47: 2012-11-16     5441            5441     FALSE
-## 48: 2012-11-17    14339           14339     FALSE
-## 49: 2012-11-18    15110           15110     FALSE
-## 50: 2012-11-19     8841            8841     FALSE
-## 51: 2012-11-20     4472            4472     FALSE
-## 52: 2012-11-21    12787           12787     FALSE
-## 53: 2012-11-22    20427           20427     FALSE
-## 54: 2012-11-23    21194           21194     FALSE
-## 55: 2012-11-24    14478           14478     FALSE
-## 56: 2012-11-25    11834           11834     FALSE
-## 57: 2012-11-26    11162           11162     FALSE
-## 58: 2012-11-27    13646           13646     FALSE
-## 59: 2012-11-28    10183           10183     FALSE
-## 60: 2012-11-29     7047            7047     FALSE
-## 61: 2012-11-30        0            8831      TRUE
-##           date sumSteps sumStepsImputed isImputed
+##           date sumSteps isImputed
+##  1: 2012-10-01     3036      TRUE
+##  2: 2012-10-02      126     FALSE
+##  3: 2012-10-03    11352     FALSE
+##  4: 2012-10-04    12116     FALSE
+##  5: 2012-10-05    13294     FALSE
+##  6: 2012-10-06    15420     FALSE
+##  7: 2012-10-07    11015     FALSE
+##  8: 2012-10-08     3036      TRUE
+##  9: 2012-10-09    12811     FALSE
+## 10: 2012-10-10     9900     FALSE
+## 11: 2012-10-11    10304     FALSE
+## 12: 2012-10-12    17382     FALSE
+## 13: 2012-10-13    12426     FALSE
+## 14: 2012-10-14    15098     FALSE
+## 15: 2012-10-15    10139     FALSE
+## 16: 2012-10-16    15084     FALSE
+## 17: 2012-10-17    13452     FALSE
+## 18: 2012-10-18    10056     FALSE
+## 19: 2012-10-19    11829     FALSE
+## 20: 2012-10-20    10395     FALSE
+## 21: 2012-10-21     8821     FALSE
+## 22: 2012-10-22    13460     FALSE
+## 23: 2012-10-23     8918     FALSE
+## 24: 2012-10-24     8355     FALSE
+## 25: 2012-10-25     2492     FALSE
+## 26: 2012-10-26     6778     FALSE
+## 27: 2012-10-27    10119     FALSE
+## 28: 2012-10-28    11458     FALSE
+## 29: 2012-10-29     5018     FALSE
+## 30: 2012-10-30     9819     FALSE
+## 31: 2012-10-31    15414     FALSE
+## 32: 2012-11-01     3036      TRUE
+## 33: 2012-11-02    10600     FALSE
+## 34: 2012-11-03    10571     FALSE
+## 35: 2012-11-04     3036      TRUE
+## 36: 2012-11-05    10439     FALSE
+## 37: 2012-11-06     8334     FALSE
+## 38: 2012-11-07    12883     FALSE
+## 39: 2012-11-08     3219     FALSE
+## 40: 2012-11-09     3036      TRUE
+## 41: 2012-11-10     3036      TRUE
+## 42: 2012-11-11    12608     FALSE
+## 43: 2012-11-12    10765     FALSE
+## 44: 2012-11-13     7336     FALSE
+## 45: 2012-11-14     3036      TRUE
+## 46: 2012-11-15       41     FALSE
+## 47: 2012-11-16     5441     FALSE
+## 48: 2012-11-17    14339     FALSE
+## 49: 2012-11-18    15110     FALSE
+## 50: 2012-11-19     8841     FALSE
+## 51: 2012-11-20     4472     FALSE
+## 52: 2012-11-21    12787     FALSE
+## 53: 2012-11-22    20427     FALSE
+## 54: 2012-11-23    21194     FALSE
+## 55: 2012-11-24    14478     FALSE
+## 56: 2012-11-25    11834     FALSE
+## 57: 2012-11-26    11162     FALSE
+## 58: 2012-11-27    13646     FALSE
+## 59: 2012-11-28    10183     FALSE
+## 60: 2012-11-29     7047     FALSE
+## 61: 2012-11-30     3036      TRUE
+##           date sumSteps isImputed
 ```
 
 
@@ -439,7 +430,7 @@ Plot a histogram of the total number of steps taken each day. Indicate dates wit
 
 
 ```r
-ggplot(dtDaily, aes(x = date, y = sumStepsImputed, fill = isImputed)) + geom_histogram(stat = "identity", 
+ggplot(dtDaily, aes(x = date, y = sumSteps, fill = isImputed)) + geom_histogram(stat = "identity", 
     alpha = 1/2) + theme(legend.position = "bottom")
 ```
 
@@ -450,23 +441,21 @@ Calculate the mean and median total number of steps taken per day.
 
 
 ```r
-print(xtable(dtDaily[, list(meanBefore = mean(sumSteps), meanImputed = mean(sumStepsImputed), 
-    medianBefore = median(sumSteps), medianImputed = median(sumStepsImputed))]), 
+print(xtable(dtDaily[, list(meanAfterImputing = mean(sumSteps), medianAfterImputing = median(sumSteps))]), 
     type = "html", include.rownames = FALSE)
 ```
 
 <!-- html table generated in R 3.0.2 by xtable 1.7-1 package -->
-<!-- Sun May 11 13:42:31 2014 -->
+<!-- Sun May 11 23:58:14 2014 -->
 <TABLE border=1>
-<TR> <TH> meanBefore </TH> <TH> meanImputed </TH> <TH> medianBefore </TH> <TH> medianImputed </TH>  </TR>
-  <TR> <TD align="right"> 9354.23 </TD> <TD align="right"> 10693.85 </TD> <TD align="right"> 10395 </TD> <TD align="right"> 10600 </TD> </TR>
+<TR> <TH> meanAfterImputing </TH> <TH> medianAfterImputing </TH>  </TR>
+  <TR> <TD align="right"> 9752.39 </TD> <TD align="right"> 10395.00 </TD> </TR>
    </TABLE>
 
 
-The median of the imputed values isn't so different from the original values where missing values were not imputed.
-However, the mean of the imputed values is a bit higher from the original values.
+The median of the imputed values is the same as the original values where missing values were not imputed.
+However, the mean of the imputed values is greater than the original values.
 The overall impact of the imputed values is to raise the estimates of the number of steps taken each day.
-Before imputation, the number of steps taken was essentially zero.
 
 
 > ### Are there differences in activity patterns between weekdays and weekends?
@@ -521,11 +510,11 @@ message(sprintf("Is dayOfWeek a factor? %s. Is dayType a factor? %s", is.factor(
 
 
 Aggregate the average number of steps taken by 5-minute interval.
-Use the imputed values in the `stepsImputed` variable.
+Use the imputed values in the `steps` variable.
 
 
 ```r
-dtIntervals <- dt[, list(meanSteps = mean(stepsImputed, na.rm = TRUE)), list(dayType, 
+dtIntervals <- dt[, list(meanSteps = mean(steps, na.rm = TRUE)), list(dayType, 
     interval)]
 ```
 

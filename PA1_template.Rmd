@@ -83,7 +83,7 @@ Peer assessment 1 assignment for Coursera course [Reproducible Research](Reprodu
 Load packages.
 
 ```{r}
-packages <- c("data.table", "ggplot2", "xtable", "mice", "mi")
+packages <- c("data.table", "ggplot2", "xtable", "VIM")
 sapply(packages, require, character.only=TRUE, quietly=TRUE)
 ```
 
@@ -114,7 +114,6 @@ Convert the data frame to a data table using the [`data.table`](http://cran.r-pr
 ```{r}
 dt <- read.csv(file.path(getwd(), "activity.csv"))
 dt <- data.table(dt)
-setkey(dt, date, interval)
 ```
  
 Verify that the number of rows in the dataset is the expected value of 17,568.
@@ -128,6 +127,7 @@ And look at the structure of the dataset.
 
 ```{r}
 dt <- dt[, date := as.Date(date)]
+setkey(dt, date, interval)
 str(dt)
 ```
 
@@ -158,7 +158,7 @@ ggplot(dtDaily, aes(x=date, y=sumSteps)) +
 Calculate the mean and median total number of steps taken per day.
 
 ```{r, results='asis'}
-print(xtable(dtDaily[, list(mean = mean(sumSteps), median = median(sumSteps))]), type="html", include.rownames=FALSE)
+print(xtable(dtDaily[, list(meanBeforeImputing = mean(sumSteps), medianBeforeImputing = median(sumSteps))]), type="html", include.rownames=FALSE)
 ```
 
 
@@ -203,17 +203,22 @@ dt <- dt[, isStepsMissing := is.na(steps)]
 print(xtable(dt[, .N, isStepsMissing]), type="html", include.rownames=FALSE)
 ```
 
-Use the [mi](http://cran.r-project.org/web/packages/mi/index.html) package to impute missing values of the `steps` variable.
-Use simple random imputation with a bootstrap method.
+Use the [VIM](http://cran.r-project.org/web/packages/VIM/index.html) package to impute missing values of the `steps` variable.
+Use k-Nearest Neighbour Imputation.
+I couldn't get Iterative robust model-based imputation (IRMI) to work; try again later.
 
 ```{r}
-dt <- dt[, stepsImputed := random.imp(dt[, list(steps)])]
+dt <- kNN(dt)
+# dt <- irmi(dt)
 ```
 
-Verify that there are no missing values for `stepsImputed`.
+The `kNN` function returns a dataset with all `NA`s replaced.
+So the `steps` variable now contains imputed values replacing the `NA`s.
+
+Verify that there are no missing values for `steps` after imputation.
 
 ```{r, results='asis'}
-print(xtable(dt[, .N, list(isMissing = is.na(stepsImputed))]), type="html", include.rownames=FALSE)
+print(xtable(dt[, .N, list(isMissing = is.na(steps))]), type="html", include.rownames=FALSE)
 ```
 
 Verify that missingness is complete for an entire day.
@@ -231,14 +236,14 @@ dtMissingness[countMissing > 0]
 Aggregate the number of steps taken each day.
 
 ```{r}
-dtDaily <- dt[, list(sumSteps = sum(steps, na.rm=TRUE), sumStepsImputed = sum(stepsImputed), isImputed = sum(isStepsMissing) > 0), date]
+dtDaily <- dt[, list(sumSteps = sum(steps, na.rm=TRUE), isImputed = sum(steps_imp) > 0), date]
 dtDaily
 ```
 
 Plot a histogram of the total number of steps taken each day. Indicate dates with imputed values using a different color.
 
 ```{r histogramStepsTakenEachDayAfterImputation}
-ggplot(dtDaily, aes(x=date, y=sumStepsImputed, fill=isImputed)) +
+ggplot(dtDaily, aes(x=date, y=sumSteps, fill=isImputed)) +
 	geom_histogram(stat="identity", alpha=1/2) +
 	theme(legend.position="bottom")
 ```
@@ -246,13 +251,12 @@ ggplot(dtDaily, aes(x=date, y=sumStepsImputed, fill=isImputed)) +
 Calculate the mean and median total number of steps taken per day.
 
 ```{r, results='asis'}
-print(xtable(dtDaily[, list(meanBefore = mean(sumSteps), meanImputed = mean(sumStepsImputed), medianBefore = median(sumSteps), medianImputed = median(sumStepsImputed))]), type="html", include.rownames=FALSE)
+print(xtable(dtDaily[, list(meanAfterImputing = mean(sumSteps), medianAfterImputing = median(sumSteps))]), type="html", include.rownames=FALSE)
 ```
 
-The median of the imputed values isn't so different from the original values where missing values were not imputed.
-However, the mean of the imputed values is a bit higher from the original values.
+The median of the imputed values is the same as the original values where missing values were not imputed.
+However, the mean of the imputed values is greater than the original values.
 The overall impact of the imputed values is to raise the estimates of the number of steps taken each day.
-Before imputation, the number of steps taken was essentially zero.
 
 
 > ### Are there differences in activity patterns between weekdays and weekends?
@@ -285,10 +289,10 @@ message(sprintf("Is dayOfWeek a factor? %s. Is dayType a factor? %s", is.factor(
 ```
 
 Aggregate the average number of steps taken by 5-minute interval.
-Use the imputed values in the `stepsImputed` variable.
+Use the imputed values in the `steps` variable.
 
 ```{r}
-dtIntervals <- dt[, list(meanSteps = mean(stepsImputed, na.rm=TRUE)), list(dayType, interval)]
+dtIntervals <- dt[, list(meanSteps = mean(steps, na.rm=TRUE)), list(dayType, interval)]
 ```
 
 Plot two time series (one for weekdays and the other for weekends) of the 5-minute intervals and average number of steps taken (imputed values).
