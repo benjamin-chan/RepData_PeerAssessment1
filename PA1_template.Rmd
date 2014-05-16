@@ -119,7 +119,8 @@ dt <- data.table(dt)
 Verify that the number of rows in the dataset is the expected value of 17,568.
 
 ```{r}
-message(sprintf("Is the number of rows in the dataset 17,568? %s", nrow(dt) == 17568))
+check <- nrow(dt) == 17568
+if (check == FALSE) stop("The number of rows in the dataset is not 17,568.")
 ```
 
 Convert the `date` variable to a date class.
@@ -129,6 +130,7 @@ And look at the structure of the dataset.
 dt <- dt[, date := as.Date(date)]
 setkey(dt, date, interval)
 str(dt)
+dt
 ```
 
 
@@ -155,10 +157,11 @@ ggplot(dtDaily, aes(x=date, y=sumSteps)) +
 	geom_histogram(stat="identity")
 ```
 
-Calculate the mean and median total number of steps taken per day.
+Calculate the mean and median total number of steps taken per day **before imputing**.
 
 ```{r, results='asis'}
-print(xtable(dtDaily[, list(meanBeforeImputing = mean(sumSteps), medianBeforeImputing = median(sumSteps))]), type="html", include.rownames=FALSE)
+tab <- dtDaily[, list(n = .N, mean = mean(sumSteps, na.rm=TRUE), median = median(sumSteps, na.rm=TRUE))]
+print(xtable(tab), type="html", include.rownames=FALSE)
 ```
 
 
@@ -200,7 +203,8 @@ Calculate the total number of missing values.
 
 ```{r, results='asis'}
 dt <- dt[, isStepsMissing := is.na(steps)]
-print(xtable(dt[, .N, isStepsMissing]), type="html", include.rownames=FALSE)
+tab <- dt[, .N, isStepsMissing]
+print(xtable(tab), type="html", include.rownames=FALSE)
 ```
 
 Use the [VIM](http://cran.r-project.org/web/packages/VIM/index.html) package to impute missing values of the `steps` variable.
@@ -218,7 +222,8 @@ So the `steps` variable now contains imputed values replacing the `NA`s.
 Verify that there are no missing values for `steps` after imputation.
 
 ```{r, results='asis'}
-print(xtable(dt[, .N, list(isMissing = is.na(steps))]), type="html", include.rownames=FALSE)
+tab <- dt[, .N, list(isMissing = is.na(steps))]
+print(xtable(tab), type="html", include.rownames=FALSE)
 ```
 
 Verify that missingness is complete for an entire day.
@@ -248,10 +253,11 @@ ggplot(dtDaily, aes(x=date, y=sumSteps, fill=isImputed)) +
 	theme(legend.position="bottom")
 ```
 
-Calculate the mean and median total number of steps taken per day.
+Calculate the mean and median total number of steps taken per day **after imputing**.
 
 ```{r, results='asis'}
-print(xtable(dtDaily[, list(meanAfterImputing = mean(sumSteps), medianAfterImputing = median(sumSteps))]), type="html", include.rownames=FALSE)
+tab <- dtDaily[, list(n = .N, mean = mean(sumSteps, na.rm=TRUE), median = median(sumSteps, na.rm=TRUE))]
+print(xtable(tab), type="html", include.rownames=FALSE)
 ```
 
 The median of the imputed values is the same as the original values where missing values were not imputed.
