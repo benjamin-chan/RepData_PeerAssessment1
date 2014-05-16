@@ -144,10 +144,11 @@ dt
 > 2. Calculate and report the **mean** and **median** total number of steps taken per day
 
 Aggregate the number of steps taken each day.
-Ignore the missing values.
+Days with missing values (`NA`) will have `NA` when aggregated.
 
 ```{r}
-dtDaily <- dt[, list(sumSteps = sum(steps, na.rm=TRUE)), date]
+dtDaily <- dt[, list(sumSteps = sum(steps)), date]
+head(dtDaily)
 ```
 
 Plot a histogram of the total number of steps taken each day.
@@ -160,7 +161,7 @@ ggplot(dtDaily, aes(x=sumSteps)) +
 Calculate the mean and median total number of steps taken per day **before imputing**.
 
 ```{r, results='asis'}
-tab <- dtDaily[, list(n = .N, mean = mean(sumSteps, na.rm=TRUE), median = median(sumSteps, na.rm=TRUE))]
+tab <- dtDaily[, list(n = .N, nValid = sum(!is.na(sumSteps)), mean = mean(sumSteps, na.rm=TRUE), median = median(sumSteps, na.rm=TRUE))]
 print(xtable(tab), type="html", include.rownames=FALSE)
 ```
 
@@ -248,8 +249,8 @@ dtMissingness[countMissing > 0]
 Aggregate the number of steps taken each day.
 
 ```{r}
-dtDaily <- dt[, list(sumSteps = sum(steps, na.rm=TRUE), isImputed = sum(steps_imp) > 0), date]
-dtDaily
+dtDaily <- dt[, list(sumSteps = sum(steps), isImputed = sum(steps_imp) > 0), date]
+head(dtDaily)
 ```
 
 Plot a histogram of the total number of steps taken each day **after imputing** and compare with the histogram **before imputing**.
@@ -268,13 +269,13 @@ ggplot(dtDaily, aes(x=sumSteps, fill=isImputed)) +
 Calculate the mean and median total number of steps taken per day **after imputing**.
 
 ```{r, results='asis'}
-tab <- dtDaily[, list(n = .N, mean = mean(sumSteps, na.rm=TRUE), median = median(sumSteps, na.rm=TRUE))]
+tab <- dtDaily[, list(n = .N, nValid = sum(!is.na(sumSteps)), mean = mean(sumSteps, na.rm=TRUE), median = median(sumSteps, na.rm=TRUE)), status]
 print(xtable(tab), type="html", include.rownames=FALSE)
 ```
 
 The median of the imputed values is the same as the original values where missing values were not imputed.
-However, the mean of the imputed values is greater than the original values.
-The overall impact of the imputed values is to raise the estimates of the number of steps taken each day.
+However, the mean of the imputed values is **less than** the original values.
+The overall impact of the imputed values is to **lower** the estimates of the number of steps taken each day.
 
 
 > ### Are there differences in activity patterns between weekdays and weekends?

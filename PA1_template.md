@@ -211,11 +211,22 @@ dt
 > 2. Calculate and report the **mean** and **median** total number of steps taken per day
 
 Aggregate the number of steps taken each day.
-Ignore the missing values.
+Days with missing values (`NA`) will have `NA` when aggregated.
 
 
 ```r
-dtDaily <- dt[, list(sumSteps = sum(steps, na.rm = TRUE)), date]
+dtDaily <- dt[, list(sumSteps = sum(steps)), date]
+head(dtDaily)
+```
+
+```
+##          date sumSteps
+## 1: 2012-10-01       NA
+## 2: 2012-10-02      126
+## 3: 2012-10-03    11352
+## 4: 2012-10-04    12116
+## 5: 2012-10-05    13294
+## 6: 2012-10-06    15420
 ```
 
 
@@ -233,16 +244,16 @@ Calculate the mean and median total number of steps taken per day **before imput
 
 
 ```r
-tab <- dtDaily[, list(n = .N, mean = mean(sumSteps, na.rm = TRUE), median = median(sumSteps, 
-    na.rm = TRUE))]
+tab <- dtDaily[, list(n = .N, nValid = sum(!is.na(sumSteps)), mean = mean(sumSteps, 
+    na.rm = TRUE), median = median(sumSteps, na.rm = TRUE))]
 print(xtable(tab), type = "html", include.rownames = FALSE)
 ```
 
 <!-- html table generated in R 3.0.2 by xtable 1.7-1 package -->
-<!-- Thu May 15 22:05:09 2014 -->
+<!-- Thu May 15 22:39:36 2014 -->
 <TABLE border=1>
-<TR> <TH> n </TH> <TH> mean </TH> <TH> median </TH>  </TR>
-  <TR> <TD align="right">  61 </TD> <TD align="right"> 9354.23 </TD> <TD align="right"> 10395 </TD> </TR>
+<TR> <TH> n </TH> <TH> nValid </TH> <TH> mean </TH> <TH> median </TH>  </TR>
+  <TR> <TD align="right">  61 </TD> <TD align="right">  53 </TD> <TD align="right"> 10766.19 </TD> <TD align="right"> 10765 </TD> </TR>
    </TABLE>
 
 
@@ -305,7 +316,7 @@ print(xtable(tab), type = "html", include.rownames = FALSE)
 ```
 
 <!-- html table generated in R 3.0.2 by xtable 1.7-1 package -->
-<!-- Thu May 15 22:05:09 2014 -->
+<!-- Thu May 15 22:39:36 2014 -->
 <TABLE border=1>
 <TR> <TH> isStepsMissing </TH> <TH> N </TH>  </TR>
   <TR> <TD> TRUE </TD> <TD align="right"> 2304 </TD> </TR>
@@ -323,7 +334,7 @@ dt <- kNN(dt)
 ```
 
 ```
-## Time difference of -7.722 secs
+## Time difference of -7.711 secs
 ```
 
 ```r
@@ -343,7 +354,7 @@ print(xtable(tab), type = "html", include.rownames = FALSE)
 ```
 
 <!-- html table generated in R 3.0.2 by xtable 1.7-1 package -->
-<!-- Thu May 15 22:05:17 2014 -->
+<!-- Thu May 15 22:39:44 2014 -->
 <TABLE border=1>
 <TR> <TH> isMissing </TH> <TH> N </TH>  </TR>
   <TR> <TD> FALSE </TD> <TD align="right"> 17568 </TD> </TR>
@@ -381,75 +392,19 @@ Aggregate the number of steps taken each day.
 
 
 ```r
-dtDaily <- dt[, list(sumSteps = sum(steps, na.rm = TRUE), isImputed = sum(steps_imp) > 
-    0), date]
-dtDaily
+dtDaily <- dt[, list(sumSteps = sum(steps), isImputed = sum(steps_imp) > 0), 
+    date]
+head(dtDaily)
 ```
 
 ```
-##           date sumSteps isImputed
-##  1: 2012-10-01     3036      TRUE
-##  2: 2012-10-02      126     FALSE
-##  3: 2012-10-03    11352     FALSE
-##  4: 2012-10-04    12116     FALSE
-##  5: 2012-10-05    13294     FALSE
-##  6: 2012-10-06    15420     FALSE
-##  7: 2012-10-07    11015     FALSE
-##  8: 2012-10-08     3036      TRUE
-##  9: 2012-10-09    12811     FALSE
-## 10: 2012-10-10     9900     FALSE
-## 11: 2012-10-11    10304     FALSE
-## 12: 2012-10-12    17382     FALSE
-## 13: 2012-10-13    12426     FALSE
-## 14: 2012-10-14    15098     FALSE
-## 15: 2012-10-15    10139     FALSE
-## 16: 2012-10-16    15084     FALSE
-## 17: 2012-10-17    13452     FALSE
-## 18: 2012-10-18    10056     FALSE
-## 19: 2012-10-19    11829     FALSE
-## 20: 2012-10-20    10395     FALSE
-## 21: 2012-10-21     8821     FALSE
-## 22: 2012-10-22    13460     FALSE
-## 23: 2012-10-23     8918     FALSE
-## 24: 2012-10-24     8355     FALSE
-## 25: 2012-10-25     2492     FALSE
-## 26: 2012-10-26     6778     FALSE
-## 27: 2012-10-27    10119     FALSE
-## 28: 2012-10-28    11458     FALSE
-## 29: 2012-10-29     5018     FALSE
-## 30: 2012-10-30     9819     FALSE
-## 31: 2012-10-31    15414     FALSE
-## 32: 2012-11-01     3036      TRUE
-## 33: 2012-11-02    10600     FALSE
-## 34: 2012-11-03    10571     FALSE
-## 35: 2012-11-04     3036      TRUE
-## 36: 2012-11-05    10439     FALSE
-## 37: 2012-11-06     8334     FALSE
-## 38: 2012-11-07    12883     FALSE
-## 39: 2012-11-08     3219     FALSE
-## 40: 2012-11-09     3036      TRUE
-## 41: 2012-11-10     3036      TRUE
-## 42: 2012-11-11    12608     FALSE
-## 43: 2012-11-12    10765     FALSE
-## 44: 2012-11-13     7336     FALSE
-## 45: 2012-11-14     3036      TRUE
-## 46: 2012-11-15       41     FALSE
-## 47: 2012-11-16     5441     FALSE
-## 48: 2012-11-17    14339     FALSE
-## 49: 2012-11-18    15110     FALSE
-## 50: 2012-11-19     8841     FALSE
-## 51: 2012-11-20     4472     FALSE
-## 52: 2012-11-21    12787     FALSE
-## 53: 2012-11-22    20427     FALSE
-## 54: 2012-11-23    21194     FALSE
-## 55: 2012-11-24    14478     FALSE
-## 56: 2012-11-25    11834     FALSE
-## 57: 2012-11-26    11162     FALSE
-## 58: 2012-11-27    13646     FALSE
-## 59: 2012-11-28    10183     FALSE
-## 60: 2012-11-29     7047     FALSE
-## 61: 2012-11-30     3036      TRUE
-##           date sumSteps isImputed
+##          date sumSteps isImputed
+## 1: 2012-10-01     3036      TRUE
+## 2: 2012-10-02      126     FALSE
+## 3: 2012-10-03    11352     FALSE
+## 4: 2012-10-04    12116     FALSE
+## 5: 2012-10-05    13294     FALSE
+## 6: 2012-10-06    15420     FALSE
 ```
 
 
@@ -472,22 +427,23 @@ Calculate the mean and median total number of steps taken per day **after imputi
 
 
 ```r
-tab <- dtDaily[, list(n = .N, mean = mean(sumSteps, na.rm = TRUE), median = median(sumSteps, 
-    na.rm = TRUE))]
+tab <- dtDaily[, list(n = .N, nValid = sum(!is.na(sumSteps)), mean = mean(sumSteps, 
+    na.rm = TRUE), median = median(sumSteps, na.rm = TRUE)), status]
 print(xtable(tab), type = "html", include.rownames = FALSE)
 ```
 
 <!-- html table generated in R 3.0.2 by xtable 1.7-1 package -->
-<!-- Thu May 15 22:05:18 2014 -->
+<!-- Thu May 15 22:39:45 2014 -->
 <TABLE border=1>
-<TR> <TH> n </TH> <TH> mean </TH> <TH> median </TH>  </TR>
-  <TR> <TD align="right"> 122 </TD> <TD align="right"> 9553.31 </TD> <TD align="right"> 10395.00 </TD> </TR>
+<TR> <TH> status </TH> <TH> n </TH> <TH> nValid </TH> <TH> mean </TH> <TH> median </TH>  </TR>
+  <TR> <TD> After imputation </TD> <TD align="right">  61 </TD> <TD align="right">  61 </TD> <TD align="right"> 9752.39 </TD> <TD align="right"> 10395.00 </TD> </TR>
+  <TR> <TD> Before imputation </TD> <TD align="right">  61 </TD> <TD align="right">  53 </TD> <TD align="right"> 10766.19 </TD> <TD align="right"> 10765.00 </TD> </TR>
    </TABLE>
 
 
 The median of the imputed values is the same as the original values where missing values were not imputed.
-However, the mean of the imputed values is greater than the original values.
-The overall impact of the imputed values is to raise the estimates of the number of steps taken each day.
+However, the mean of the imputed values is **less than** the original values.
+The overall impact of the imputed values is to **lower** the estimates of the number of steps taken each day.
 
 
 > ### Are there differences in activity patterns between weekdays and weekends?
