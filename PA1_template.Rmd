@@ -153,8 +153,8 @@ dtDaily <- dt[, list(sumSteps = sum(steps, na.rm=TRUE)), date]
 Plot a histogram of the total number of steps taken each day.
 
 ```{r histogramStepsTakenEachDay}
-ggplot(dtDaily, aes(x=date, y=sumSteps)) +
-	geom_histogram(stat="identity")
+ggplot(dtDaily, aes(x=sumSteps)) +
+	geom_histogram(alpha=1/2, binwidth=1000)
 ```
 
 Calculate the mean and median total number of steps taken per day **before imputing**.
@@ -162,6 +162,13 @@ Calculate the mean and median total number of steps taken per day **before imput
 ```{r, results='asis'}
 tab <- dtDaily[, list(n = .N, mean = mean(sumSteps, na.rm=TRUE), median = median(sumSteps, na.rm=TRUE))]
 print(xtable(tab), type="html", include.rownames=FALSE)
+```
+
+Copy the data table `dtDaily` before imputation to be used later.
+
+```{r}
+dtDaily <- dtDaily[, status := "Before imputation"]
+dtDailyBeforeImputation <- dtDaily
 ```
 
 
@@ -245,12 +252,17 @@ dtDaily <- dt[, list(sumSteps = sum(steps, na.rm=TRUE), isImputed = sum(steps_im
 dtDaily
 ```
 
-Plot a histogram of the total number of steps taken each day. Indicate dates with imputed values using a different color.
+Plot a histogram of the total number of steps taken each day **after imputing** and compare with the histogram **before imputing**.
+Need to add an `isImputed` column to `dtDailyBeforeImputation` to make `rbind` work.
 
 ```{r histogramStepsTakenEachDayAfterImputation}
-ggplot(dtDaily, aes(x=date, y=sumSteps, fill=isImputed)) +
-	geom_histogram(stat="identity", alpha=1/2) +
-	theme(legend.position="bottom")
+dtDaily <- dtDaily[, status := "After imputation"]
+dtDailyBeforeImputation <- dtDailyBeforeImputation[, isImputed := FALSE]
+dtDaily <- rbind(dtDaily, dtDailyBeforeImputation, use.names=TRUE)
+ggplot(dtDaily, aes(x=sumSteps, fill=isImputed)) +
+	geom_histogram(alpha=1/2, binwidth=1000) +
+  facet_wrap(~ status, nrow=2) +
+  theme(legend.position="bottom")
 ```
 
 Calculate the mean and median total number of steps taken per day **after imputing**.

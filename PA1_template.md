@@ -156,12 +156,8 @@ Verify that the number of rows in the dataset is the expected value of 17,568.
 
 
 ```r
-message(sprintf("Is the number of rows in the dataset 17,568? %s", nrow(dt) == 
-    17568))
-```
-
-```
-## Is the number of rows in the dataset 17,568? TRUE
+check <- nrow(dt) == 17568
+if (check == FALSE) stop("The number of rows in the dataset is not 17,568.")
 ```
 
 
@@ -182,6 +178,25 @@ str(dt)
 ##  $ interval: int  0 5 10 15 20 25 30 35 40 45 ...
 ##  - attr(*, ".internal.selfref")=<externalptr> 
 ##  - attr(*, "sorted")= chr  "date" "interval"
+```
+
+```r
+dt
+```
+
+```
+##        steps       date interval
+##     1:    NA 2012-10-01        0
+##     2:    NA 2012-10-01        5
+##     3:    NA 2012-10-01       10
+##     4:    NA 2012-10-01       15
+##     5:    NA 2012-10-01       20
+##    ---                          
+## 17564:    NA 2012-11-30     2335
+## 17565:    NA 2012-11-30     2340
+## 17566:    NA 2012-11-30     2345
+## 17567:    NA 2012-11-30     2350
+## 17568:    NA 2012-11-30     2355
 ```
 
 
@@ -208,26 +223,36 @@ Plot a histogram of the total number of steps taken each day.
 
 
 ```r
-ggplot(dtDaily, aes(x = date, y = sumSteps)) + geom_histogram(stat = "identity")
+ggplot(dtDaily, aes(x = sumSteps)) + geom_histogram(alpha = 1/2, binwidth = 1000)
 ```
 
 ![plot of chunk histogramStepsTakenEachDay](figure/histogramStepsTakenEachDay.png) 
 
 
-Calculate the mean and median total number of steps taken per day.
+Calculate the mean and median total number of steps taken per day **before imputing**.
 
 
 ```r
-print(xtable(dtDaily[, list(meanBeforeImputing = mean(sumSteps), medianBeforeImputing = median(sumSteps))]), 
-    type = "html", include.rownames = FALSE)
+tab <- dtDaily[, list(n = .N, mean = mean(sumSteps, na.rm = TRUE), median = median(sumSteps, 
+    na.rm = TRUE))]
+print(xtable(tab), type = "html", include.rownames = FALSE)
 ```
 
 <!-- html table generated in R 3.0.2 by xtable 1.7-1 package -->
-<!-- Sun May 11 23:58:05 2014 -->
+<!-- Thu May 15 22:05:09 2014 -->
 <TABLE border=1>
-<TR> <TH> meanBeforeImputing </TH> <TH> medianBeforeImputing </TH>  </TR>
-  <TR> <TD align="right"> 9354.23 </TD> <TD align="right"> 10395 </TD> </TR>
+<TR> <TH> n </TH> <TH> mean </TH> <TH> median </TH>  </TR>
+  <TR> <TD align="right">  61 </TD> <TD align="right"> 9354.23 </TD> <TD align="right"> 10395 </TD> </TR>
    </TABLE>
+
+
+Copy the data table `dtDaily` before imputation to be used later.
+
+
+```r
+dtDaily <- dtDaily[, `:=`(status, "Before imputation")]
+dtDailyBeforeImputation <- dtDaily
+```
 
 
 
@@ -275,11 +300,12 @@ Calculate the total number of missing values.
 
 ```r
 dt <- dt[, `:=`(isStepsMissing, is.na(steps))]
-print(xtable(dt[, .N, isStepsMissing]), type = "html", include.rownames = FALSE)
+tab <- dt[, .N, isStepsMissing]
+print(xtable(tab), type = "html", include.rownames = FALSE)
 ```
 
 <!-- html table generated in R 3.0.2 by xtable 1.7-1 package -->
-<!-- Sun May 11 23:58:05 2014 -->
+<!-- Thu May 15 22:05:09 2014 -->
 <TABLE border=1>
 <TR> <TH> isStepsMissing </TH> <TH> N </TH>  </TR>
   <TR> <TD> TRUE </TD> <TD align="right"> 2304 </TD> </TR>
@@ -297,7 +323,7 @@ dt <- kNN(dt)
 ```
 
 ```
-## Time difference of -7.972 secs
+## Time difference of -7.722 secs
 ```
 
 ```r
@@ -312,11 +338,12 @@ Verify that there are no missing values for `steps` after imputation.
 
 
 ```r
-print(xtable(dt[, .N, list(isMissing = is.na(steps))]), type = "html", include.rownames = FALSE)
+tab <- dt[, .N, list(isMissing = is.na(steps))]
+print(xtable(tab), type = "html", include.rownames = FALSE)
 ```
 
 <!-- html table generated in R 3.0.2 by xtable 1.7-1 package -->
-<!-- Sun May 11 23:58:13 2014 -->
+<!-- Thu May 15 22:05:17 2014 -->
 <TABLE border=1>
 <TR> <TH> isMissing </TH> <TH> N </TH>  </TR>
   <TR> <TD> FALSE </TD> <TD align="right"> 17568 </TD> </TR>
@@ -426,30 +453,35 @@ dtDaily
 ```
 
 
-Plot a histogram of the total number of steps taken each day. Indicate dates with imputed values using a different color.
+Plot a histogram of the total number of steps taken each day **after imputing** and compare with the histogram **before imputing**.
+Need to add an `isImputed` column to `dtDailyBeforeImputation` to make `rbind` work.
 
 
 ```r
-ggplot(dtDaily, aes(x = date, y = sumSteps, fill = isImputed)) + geom_histogram(stat = "identity", 
-    alpha = 1/2) + theme(legend.position = "bottom")
+dtDaily <- dtDaily[, `:=`(status, "After imputation")]
+dtDailyBeforeImputation <- dtDailyBeforeImputation[, `:=`(isImputed, FALSE)]
+dtDaily <- rbind(dtDaily, dtDailyBeforeImputation, use.names = TRUE)
+ggplot(dtDaily, aes(x = sumSteps, fill = isImputed)) + geom_histogram(alpha = 1/2, 
+    binwidth = 1000) + facet_wrap(~status, nrow = 2) + theme(legend.position = "bottom")
 ```
 
 ![plot of chunk histogramStepsTakenEachDayAfterImputation](figure/histogramStepsTakenEachDayAfterImputation.png) 
 
 
-Calculate the mean and median total number of steps taken per day.
+Calculate the mean and median total number of steps taken per day **after imputing**.
 
 
 ```r
-print(xtable(dtDaily[, list(meanAfterImputing = mean(sumSteps), medianAfterImputing = median(sumSteps))]), 
-    type = "html", include.rownames = FALSE)
+tab <- dtDaily[, list(n = .N, mean = mean(sumSteps, na.rm = TRUE), median = median(sumSteps, 
+    na.rm = TRUE))]
+print(xtable(tab), type = "html", include.rownames = FALSE)
 ```
 
 <!-- html table generated in R 3.0.2 by xtable 1.7-1 package -->
-<!-- Sun May 11 23:58:14 2014 -->
+<!-- Thu May 15 22:05:18 2014 -->
 <TABLE border=1>
-<TR> <TH> meanAfterImputing </TH> <TH> medianAfterImputing </TH>  </TR>
-  <TR> <TD align="right"> 9752.39 </TD> <TD align="right"> 10395.00 </TD> </TR>
+<TR> <TH> n </TH> <TH> mean </TH> <TH> median </TH>  </TR>
+  <TR> <TD align="right"> 122 </TD> <TD align="right"> 9553.31 </TD> <TD align="right"> 10395.00 </TD> </TR>
    </TABLE>
 
 
